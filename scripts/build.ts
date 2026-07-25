@@ -5,6 +5,12 @@ import { join } from "node:path";
 const args = new Set(process.argv.slice(2));
 const root = process.cwd();
 const targets = ["chromium", "firefox", "safari"] as const;
+const packageJson = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
+const version = String(packageJson.version);
+
+if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) {
+  throw new Error(`Niepoprawna wersja pakietu: ${version}`);
+}
 
 function crc32(data: Uint8Array) {
   let crc = 0xffffffff;
@@ -124,7 +130,7 @@ if (args.has("--package")) {
   await rm(artifactDir, { recursive: true, force: true });
   await mkdir(artifactDir, { recursive: true });
   for (const target of targets) {
-    const process = Bun.spawn(["zip", "-qr", join(artifactDir, `ytzero-enhance-${target}-0.1.0.zip`), "."], { cwd: join(root, "dist", target) });
+    const process = Bun.spawn(["zip", "-qr", join(artifactDir, `ytzero-enhance-${target}-${version}.zip`), "."], { cwd: join(root, "dist", target) });
     if (await process.exited !== 0) throw new Error(`Nie udało się spakować ${target}`);
   }
 }
@@ -132,7 +138,7 @@ if (args.has("--package")) {
 if (args.has("--check")) {
   for (const target of targets) {
     const manifest = JSON.parse(await readFile(join(root, "dist", target, "manifest.json"), "utf8"));
-    if (manifest.manifest_version !== 3 || manifest.name !== "__MSG_extensionName__" || manifest.default_locale !== "en") throw new Error(`Niepoprawny manifest ${target}`);
+    if (manifest.manifest_version !== 3 || manifest.name !== "__MSG_extensionName__" || manifest.default_locale !== "en" || manifest.version !== version) throw new Error(`Niepoprawny manifest ${target}`);
     for (const locale of ["en", "pl", "de"]) {
       const messages = JSON.parse(await readFile(join(root, "dist", target, "_locales", locale, "messages.json"), "utf8"));
       if (!messages.extensionName?.message || !messages.extensionDescription?.message) throw new Error(`Niepoprawne tłumaczenie ${locale} dla ${target}`);

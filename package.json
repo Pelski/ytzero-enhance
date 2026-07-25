@@ -1,8 +1,21 @@
 {
   "name": "ytzero-enhance",
   "version": "0.1.0",
+  "description": "Browser extension that connects YouTube links and embedded players with a self-hosted YT Zero instance.",
   "private": true,
   "type": "module",
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Pelski/ytzero-enhance.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Pelski/ytzero-enhance/issues"
+  },
+  "homepage": "https://github.com/Pelski/ytzero-enhance#readme",
+  "engines": {
+    "bun": ">=1.3.0"
+  },
   "scripts": {
     "build": "bun scripts/build.ts",
     "test": "bun test",

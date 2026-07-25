@@ -1,157 +1,197 @@
-# YT Zero Enhance
+<div align="center">
+  <img src="static/icons/icon.svg" width="112" height="112" alt="YT Zero Enhance logo">
+  <h1>YT Zero Enhance</h1>
+  <p><strong>Your self-hosted YT Zero experience, wherever a YouTube player appears.</strong></p>
+  <p>
+    <a href="https://github.com/Pelski/ytzero-enhance/actions/workflows/ci.yml"><img src="https://github.com/Pelski/ytzero-enhance/actions/workflows/ci.yml/badge.svg" alt="Build status"></a>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue.svg" alt="AGPL-3.0-only"></a>
+    <img src="https://img.shields.io/badge/Manifest-V3-3ea6ff" alt="Manifest V3">
+    <img src="https://img.shields.io/badge/locales-EN%20%7C%20PL%20%7C%20DE-f2293a" alt="English, Polish and German">
+  </p>
+</div>
 
-Rozszerzenie dla Chromium, Firefoksa oraz Safari na macOS/iOS/iPadOS, które łączy zwykłe linki YouTube z lokalną instancją [YT Zero](https://github.com/Pelski/ytzero) i uzupełnia ograniczenia cross-origin embedded YouTube Playera.
+YT Zero Enhance is the companion browser extension for [YT Zero](https://github.com/Pelski/ytzero). It redirects regular YouTube links to your own instance and brings YT Zero-style controls, shortcuts, profile settings, SponsorBlock chapters and frame capture to embedded YouTube players.
 
-Interfejs używa oficjalnej identyfikacji YT Zero: oryginalnego niebieskiego znaku Play, kroju Roboto, tokenów powierzchni `#0f0f0f` / `#1f1f1f` / `#272727`, akcentu `#3ea6ff` oraz czerwieni playera `#f2293a`. Popup, ustawienia, ikony instalacyjne i kontrolki embedded playera są wizualnie zgodne z aplikacją bazową.
+> [!IMPORTANT]
+> YT Zero Enhance requires access to a running YT Zero instance. It is not a standalone YouTube client and it does not bypass authentication, advertisements, DRM, region restrictions or bot protection.
 
-## Funkcje
+## Install
 
-- opcjonalne przekierowanie `youtube.com/watch`, `/shorts`, `/live` i `youtu.be` do lokalnego `/watch/:videoId`, z zachowaniem timestampu;
-- obsługa lokalnej instancji na `localhost`, w LAN, przez HTTPS i pod ścieżką reverse proxy;
-- parowanie z zalogowaną stroną filmu i odczyt wersjonowanej konfiguracji osadzonej bezpiecznie w DOM;
-- wiele sparowanych instancji YT Zero, z jedną domyślną dla przekierowań;
-- interfejs angielski (domyślny), polski i niemiecki, wybierany automatycznie na podstawie języka interfejsu przeglądarki;
-- oznaczenie działającego rozszerzenia w topbarze YT Zero przez `data-extension-status="active"` po zakończeniu inicjalizacji;
-- synchronizacja ustawień profilu YT Zero: prędkości per kanał, seek, FPS, jakości, napisów, rozdziałów, SponsorBlock i nazw zrzutów;
-- wybór najwyższej jakości dostępnej dla filmu, która nie przekracza progu ustawionego w aktywnym profilu (`auto` wybiera najwyższą dostępną);
-- pasek zgodny z LocalPlayerem YT Zero: identyczny układ i rozmiary, buforowanie/postęp, rozdziały, segmenty SponsorBlock, tooltip czasu i rozdziału oraz zwijana głośność;
-- skróty działające bez wcześniejszego fokusowania iframe;
-- zrzut widocznej klatki embedded playera do PNG/JPEG/WebP z konfigurowalną nazwą;
-- przybliżone przechodzenie klatka po klatce `,` / `.`, z automatycznym pomiarem odstępu klatek;
-- PiP, fullscreen, tryb kinowy YT Zero, napisy, prędkość, głośność, przewijanie, automatyczne chowanie paska i kursora;
-- twarde ukrywanie natywnego UI YouTube stylami wewnątrz iframe: reguła strukturalna zachowuje tylko obraz, napisy, loader i elementy reklamowe, więc działa także wtedy, gdy YouTube ignoruje `controls=0` lub podmienia klasy w eksperymencie A/B.
+Store releases are being prepared. The official download buttons will appear here as soon as each listing is public. Until then, use the [manual installation](#build-and-install-manually) instructions below.
 
-Rozszerzenie nie modyfikuje YT Zero ani jego bazy danych. Przełączniki samego dodatku są przechowywane przez `storage.sync`, a lista sparowanych instancji i ich ostatnia konfiguracja profilu przez `storage.local`.
+<!--
+STORE BADGES — replace every STORE_LISTING_URL, then uncomment only after the
+corresponding listing is publicly available. Official artwork and its aspect
+ratio must not be modified.
 
-## Instalacja deweloperska
+<p align="center">
+  <a href="CHROME_WEB_STORE_LISTING_URL"><img src="https://developer.chrome.com/static/docs/webstore/branding/image/iNEddTyWiMfLSwFD6qGq.png" height="58" alt="Available in the Chrome Web Store"></a>
+  <a href="FIREFOX_AMO_LISTING_URL"><img src="https://blog.mozilla.org/addons/files/2020/04/get-the-addon-fx-apr-2020.svg" height="58" alt="Get the add-on for Firefox"></a>
+  <a href="EDGE_ADDONS_LISTING_URL"><img src="https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/add-ons-badge-images/microsoft-edge-add-ons-badge.png" height="58" alt="Get it from Microsoft Edge Add-ons"></a>
+  <a href="APPLE_APP_STORE_LISTING_URL"><img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" height="58" alt="Download on the App Store"></a>
+</p>
 
-Wymagany jest [Bun](https://bun.sh/).
+Generate the final localized Apple image/link pair in App Store Marketing Tools:
+https://tools.applemediaservices.com/app-store/
+-->
+
+## What it adds
+
+- Redirects `youtube.com/watch`, `/shorts`, `/live` and `youtu.be` links to `/watch/:videoId` on your default YT Zero instance, preserving timestamps.
+- Pairs securely from any signed-in YT Zero page; supports multiple local, LAN, HTTPS and reverse-proxy-path instances.
+- Reads the active YT Zero profile's playback speed, seek interval, FPS, quality ceiling, captions, chapters, SponsorBlock and screenshot naming settings.
+- Replaces embedded YouTube chrome with a YT Zero-style control bar, buffering/progress display, chapters, SponsorBlock segments, volume, captions, PiP, fullscreen and theatre mode.
+- Makes shortcuts work without first focusing the iframe, including approximate frame stepping with `,` / `.`.
+- Captures the visible embedded video frame to PNG, JPEG or WebP.
+- Ships in English, Polish and German, selected from the browser UI language.
+- Keeps extension toggles in `storage.sync`; paired instances and cached profile configuration stay in `storage.local`.
+
+The extension does not modify the YT Zero application or its database.
+
+## Browser support
+
+| Browser | Build | Manual install | Store package |
+|---|---|---|---|
+| Chrome, Chromium, Brave, Vivaldi | `dist/chromium` | Unpacked extension | `ytzero-enhance-chromium-<version>.zip` |
+| Microsoft Edge | `dist/chromium` | Unpacked extension | Chromium ZIP for Edge Add-ons |
+| Firefox 121+ | `dist/firefox` | Temporary add-on | `ytzero-enhance-firefox-<version>.zip` |
+| Safari on macOS | `dist/safari` or Xcode wrapper | Temporary extension / containing app | App Store app |
+| Safari on iPhone and iPad | Xcode wrapper | Containing iOS app | App Store app |
+
+## First connection
+
+1. Install the extension for your browser.
+2. Open any signed-in page on your YT Zero instance, including its homepage.
+3. Select the YT Zero Enhance toolbar icon.
+4. Choose **Connect this tab**.
+5. Grant access to the instance when your browser asks.
+
+Pair other instances in the same way. Each paired page uses its own active profile; only YouTube redirects use the instance marked as default. The popup lets you toggle redirects and player enhancements, capture a frame, open your instance and manage connections.
+
+## Keyboard shortcuts
+
+| Key | Action |
+|---|---|
+| `Space` / `K` | Play or pause |
+| Hold `Space` | Temporarily play at 2× speed |
+| `J` / `L` | Seek −10 s / +10 s |
+| `←` / `→` | Seek by the profile interval |
+| `↑` / `↓` / `M` | Volume up, down or mute |
+| `C`, `+`, `-` | Captions and caption size |
+| `0`–`9` | Jump to 0–90% |
+| `,` / `.` | Previous / next approximate frame |
+| `S` | Save the current frame |
+| `F` / `T` | Fullscreen / YT Zero theatre mode |
+| `Alt+Shift+S` | Capture the active embedded player |
+| `Alt+Shift+Y` | Toggle redirects globally |
+
+## Build and install manually
+
+### Prerequisites
+
+- [Git](https://git-scm.com/)
+- [Bun](https://bun.sh/) 1.3 or newer
+- macOS with Xcode for the packaged Safari app
 
 ```bash
-bun test
-bun run build
+git clone https://github.com/Pelski/ytzero-enhance.git
+cd ytzero-enhance
+bun install --frozen-lockfile
+bun run check
 ```
 
-### Chrome, Chromium, Edge, Brave
+`bun run check` type-checks, tests and builds all browser targets. For a build without checks, run `bun run build`.
 
-1. Otwórz `chrome://extensions` (Edge: `edge://extensions`).
-2. Włącz **Tryb dewelopera**.
-3. Kliknij **Załaduj rozpakowane**.
-4. Wskaż katalog `dist/chromium`.
-5. Otwórz stronę dowolnego filmu w YT Zero, kliknij ikonę rozszerzenia i wybierz **Połącz tę kartę**.
+### Chrome, Chromium, Brave and Vivaldi
+
+1. Open `chrome://extensions` (Brave: `brave://extensions`, Vivaldi: `vivaldi://extensions`).
+2. Enable **Developer mode**.
+3. Select **Load unpacked**.
+4. Choose the generated `dist/chromium` directory.
+5. Reload the extension from this page after rebuilding it.
+
+### Microsoft Edge
+
+1. Open `edge://extensions`.
+2. Enable **Developer mode**.
+3. Select **Load unpacked**.
+4. Choose `dist/chromium`.
 
 ### Firefox
 
-1. Otwórz `about:debugging#/runtime/this-firefox`.
-2. Kliknij **Load Temporary Add-on / Wczytaj tymczasowy dodatek**.
-3. Wskaż `dist/firefox/manifest.json`.
-4. Otwórz stronę dowolnego filmu w YT Zero, kliknij ikonę dodatku i wybierz **Połącz tę kartę**.
+1. Open `about:debugging#/runtime/this-firefox`.
+2. Select **Load Temporary Add-on**.
+3. Choose `dist/firefox/manifest.json` (or the Firefox ZIP created by `bun run package`).
 
-Instalacja tymczasowa Firefoksa znika po restarcie. Stała instalacja wymaga podpisania ZIP-a przez AMO albo użycia Firefox Developer Edition z odpowiednią polityką dodatków.
+Firefox removes temporary add-ons when it restarts. A persistent installation requires a package signed by Mozilla; normal users should install the eventual AMO release.
 
-### Safari na macOS
+### Safari on macOS — quick temporary test
 
-Do szybkiego testu folderu web extension zbuduj `dist/safari`, a następnie użyj trybu deweloperskiego Safari. Gotowy projekt Apple znajduje się w `safari/YT Zero Enhance`. Można go odtworzyć od zera poleceniem:
+Recent Safari versions can load the web-extension folder directly:
+
+1. Open **Safari → Settings → Advanced** and enable web-developer features if the **Developer** tab is hidden.
+2. Open **Safari → Settings → Developer**.
+3. Select **Add Temporary Extension…** and choose `dist/safari`.
+4. Enable the extension and grant website access in **Safari → Settings → Extensions**.
+
+Safari removes a temporary extension after 24 hours or when Safari quits.
+
+### Safari on macOS — Xcode app
+
+The repository contains a generated universal wrapper at `safari/YT Zero Enhance`. Recreate it only when changing converter-level project structure:
 
 ```bash
 bun run safari:project
 open "safari/YT Zero Enhance/YT Zero Enhance.xcodeproj"
 ```
 
-`safari:project` nadpisuje wygenerowany wrapper. Po ustawieniu Team/signingu używaj zwykłego `bun run build`, który synchronizuje tylko zasoby rozszerzenia i zachowuje konfigurację Xcode.
+`safari:project` replaces the generated wrapper. After setting your Team and signing configuration, use regular `bun run build`; it synchronizes extension resources without overwriting Xcode signing state.
 
-W Xcode wybierz schemat macOS i uruchom aplikację zawierającą rozszerzenie. Następnie włącz je w **Safari → Settings → Extensions** i nadaj dostęp do witryn.
+In Xcode, select the macOS scheme and run the containing app once. Then enable YT Zero Enhance in **Safari → Settings → Extensions**.
 
-### Safari na iPhone/iPad
+### Safari on iPhone and iPad
 
-1. Otwórz istniejący projekt `safari/YT Zero Enhance/YT Zero Enhance.xcodeproj`.
-2. Ustaw własny **Team** oraz unikalny bundle identifier.
-3. Wybierz schemat iOS, podłącz urządzenie albo wybierz simulator, następnie **Run**.
-4. Na urządzeniu włącz dodatek w **Settings → Apps → Safari → Extensions → YT Zero Enhance**.
-5. Nadaj dostęp do YouTube, domeny instancji YT Zero i stron, na których chcesz ulepszać embed.
+1. Open `safari/YT Zero Enhance/YT Zero Enhance.xcodeproj`.
+2. Set your development **Team** and unique bundle identifiers.
+3. Select the iOS scheme and an iPhone/iPad simulator or connected device, then choose **Run**.
+4. Enable the extension in Safari's **Extensions** menu or **Settings → Apps → Safari → Extensions**.
+5. Allow access to YouTube, your YT Zero host and sites containing players you want to enhance.
 
-Testowanie na fizycznym iPhonie/iPadzie wymaga członkostwa w Apple Developer Program. Do App Store wysyła się aplikację zawierającą Safari Web Extension, a nie sam ZIP.
+The simulator works without a paid membership. Testing on a physical device requires Apple Developer Program membership. Safari distribution uses the containing application, not a browser ZIP.
 
-## Użytkowanie
+## Frame capture notes
 
-Po instalacji kliknij ikonę YT Zero Enhance. Popup pozwala bez opuszczania bieżącej strony:
+The local YT Zero player can export the source video frame and therefore gives the best quality. An embedded YouTube player is cross-origin, so the extension captures the rendered tab and crops the visible video. That result is limited to on-screen resolution; hardware overlays, DRM or another window covering the browser can produce a black frame. Use the local player when exact source pixels matter.
 
-- przy pierwszym uruchomieniu sparować rozszerzenie z otwartą, zalogowaną stroną filmu w YT Zero;
-- włączyć lub wyłączyć automatyczne przekierowania;
-- włączyć lub wyłączyć wszystkie ulepszenia embedded playera;
-- wykonać zrzut aktywnego embedded playera;
-- otworzyć lokalną instancję YT Zero;
-- przejść do listy instancji i podglądu ustawień.
-
-W ustawieniach zaawansowanych:
-
-- zobaczysz wszystkie sparowane instancje i wybierzesz domyślną;
-- ustawienia aktywnego profilu są pokazane wyłącznie do odczytu;
-- przycisk **Zmień w YT Zero** otwiera właściwą zakładkę ustawień domyślnej instancji;
-- usunięcie instancji usuwa zapisane połączenie i nie zmienia niczego na serwerze.
-
-Żeby dodać następną instancję, otwórz w niej stronę filmu, kliknij ikonę rozszerzenia i wybierz **Połącz obecną kartę jako inną instancję**. Każda sparowana strona korzysta z ustawień własnego aktywnego profilu; tylko przekierowania YouTube używają instancji oznaczonej jako domyślna.
-
-Skróty playera:
-
-| Klawisz | Akcja |
-|---|---|
-| krótkie `Space` / `K` | odtwórz / pauza |
-| przytrzymane `Space` | tymczasowo 2×; po puszczeniu wraca ustawiona prędkość |
-| `J` / `L` | −10 s / +10 s |
-| `←` / `→` | skok o skonfigurowaną liczbę sekund |
-| `↑` / `↓`, `M` | głośność, wyciszenie |
-| `C` | włącz / wyłącz napisy |
-| `+` / `-` | zwiększ / zmniejsz rozmiar napisów |
-| `0`–`9` | pozycja 0–90% |
-| `,` / `.` | poprzednia / następna klatka (najlepsze przy pauzie) |
-| `S` | zapisz klatkę |
-| `F` | fullscreen |
-| `T` | tryb kinowy na stronie YT Zero |
-| `Alt+Shift+S` | zrzut aktywnego embedded playera |
-| `Alt+Shift+Y` | globalnie włącz / wyłącz przekierowania |
-
-## Zrzuty klatek — co trzeba skonfigurować
-
-Najwyższą jakość i faktycznie surową klatkę daje lokalny player YT Zero, bo ma bezpośredni dostęp do własnego `<video>`. Włącz plugin yt-dlp, pobierz film, wybierz źródło **Local** i użyj `S`; format i szablon nazwy konfiguruje się w **YT Zero → Settings → Player**.
-
-Dla embedded playera:
-
-1. włącz **Wstrzykuj wygląd i funkcje YT Zero**;
-2. pozwól rozszerzeniu działać na danej witrynie;
-3. doprowadź film do wybranej klatki, najlepiej `,` / `.`, i pozostaw player widoczny;
-4. naciśnij `S`, przycisk zrzutu albo `Alt+Shift+S`;
-5. ustaw PNG dla bezstratnego zrzutu, JPEG dla mniejszego pliku albo WebP w ustawieniach YT Zero; osadzona konfiguracja przekazuje wybór rozszerzeniu.
-
-Embedded YouTube jest cross-origin, więc rozszerzenie przechwytuje wyrenderowaną kartę i kadruje sam obraz `<video>`. Wynik ma rozdzielczość ekranową, a nie źródłową. Inne okno zasłaniające przeglądarkę, sprzętowa nakładka wideo, DRM lub polityka systemu mogą dać czarną klatkę. W takim przypadku użyj lokalnego playera; ewentualnie sprawdź fullscreen i wyłączenie akceleracji sprzętowej w przeglądarce.
-
-## Pakiety do store'ów
+## Packages and releases
 
 ```bash
 bun run check
 bun run package
 ```
 
-Powstaną:
+This creates versioned archives in `artifacts/` for Chromium, Firefox and Safari. Keep the version in `package.json` and all three files in `manifests/` identical. Before publishing, follow [the store release checklist](docs/store-release.md), [privacy disclosures](docs/privacy.md) and [the compatibility matrix](docs/embedded-player-compatibility.md).
 
-- `artifacts/ytzero-enhance-chromium-0.1.0.zip` — Chrome Web Store / Edge Add-ons;
-- `artifacts/ytzero-enhance-firefox-0.1.0.zip` — Firefox Add-ons (AMO).
-- `artifacts/ytzero-enhance-safari-0.1.0.zip` — źródłowy web extension dla konwertera/Xcode; publikacja mobilna odbywa się przez projekt aplikacji Apple.
+## Privacy and permissions
 
-Przed publikacją zmień wersję równocześnie w `package.json` i trzech plikach `manifests/*.json`, wykonaj checklistę z [dokumentacji publikacji](docs/store-release.md) i zweryfikuj zachowanie z [macierzą kompatybilności](docs/embedded-player-compatibility.md).
+YT Zero Enhance has no analytics, advertising or external backend. YouTube access is required for its core behavior. Access to a self-hosted instance is optional and requested only after you choose its address. See the complete [privacy policy and store disclosure text](docs/privacy.md).
 
-## Prywatność i uprawnienia
+## Development
 
-Rozszerzenie nie ma analityki, reklam ani zewnętrznego backendu. YouTube jest wymaganym hostem, a dostęp do samodzielnie hostowanej instancji jest opcjonalny i nadawany dopiero po wskazaniu jej adresu. Szczegóły i tekst do formularzy store: [docs/privacy.md](docs/privacy.md).
+```text
+_locales/   Browser translations
+manifests/  Per-browser Manifest V3 files
+safari/     Generated macOS/iOS containing-app project
+scripts/    Build and packaging tools
+src/        TypeScript extension code and injected player CSS
+static/     Popup, options and source icon assets
+tests/      Unit tests and UI preview fixtures
+```
 
-## Ograniczenia
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Security issues must be reported privately as described in [SECURITY.md](SECURITY.md).
 
-- rozszerzenie nie omija logowania, blokad geograficznych, reklam, DRM ani kontroli botów YouTube;
-- w LibreWolf brak/referrer może zablokować iframe zanim skrypt rozszerzenia dostanie player — nie osłabiamy globalnie ochrony prywatności;
-- background playback i programowy fullscreen nadal zależą od systemu, przeglądarki oraz user activation; na iOS fullscreen korzysta z natywnego `webkitEnterFullscreen` jako fallback;
-- krok klatkowy w filmach VFR jest najlepszym przybliżeniem; dokładny eksport klatki źródłowej wymaga lokalnego pliku;
-- link do filmu dostępnego tylko dla zalogowanego użytkownika może zostać z powrotem przekierowany; `Alt+Shift+Y` tymczasowo wyłącza redirect.
+## License
 
-## Rozwój
+YT Zero Enhance is free software licensed under the [GNU Affero General Public License v3.0 only](LICENSE).
 
-Kod źródłowy jest w `src/`, statyczne strony w `static/`, a manifesty przeglądarek w `manifests/`. `dist/` i ZIP-y są generowane. Testy jednostkowe pokrywają URL-e, konfigurację z DOM, wiele instancji, bridge, zabezpieczenia originu, skróty, frame stepping oraz zrzuty.
+YouTube is a trademark of Google LLC. YT Zero Enhance is an independent project and is not affiliated with or endorsed by Google, Mozilla, Microsoft or Apple.

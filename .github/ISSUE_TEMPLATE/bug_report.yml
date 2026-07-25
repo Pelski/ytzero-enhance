@@ -1,0 +1,60 @@
+name: Bug report
+description: Report behavior that is not working as expected
+title: "bug: "
+labels: [bug]
+assignees: [Pelski]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting a problem. Remove cookies, tokens, private URLs and other sensitive data from logs and screenshots.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Describe the problem and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open …
+        2. Enable …
+        3. Observe …
+    validations:
+      required: true
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      options:
+        - Chrome / Chromium
+        - Microsoft Edge
+        - Brave / Vivaldi / another Chromium browser
+        - Firefox
+        - Safari on macOS
+        - Safari on iPhone / iPad
+        - Multiple browsers
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Extension, browser, operating system and YT Zero versions.
+      placeholder: YT Zero Enhance 0.1.0; Firefox 145; macOS 26; YT Zero v…
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Logs, screenshots and context
+      description: Include the page type (YouTube, YT Zero or third-party embed) and relevant console output.
+  - type: checkboxes
+    id: latest
+    attributes:
+      label: Verification
+      options:
+        - label: I reproduced this with the latest available version and removed sensitive data.
+          required: true

@@ -46,19 +46,20 @@ async function pairActiveTab(button: HTMLButtonElement, output: HTMLOutputElemen
     const tabs = await callApi<any[]>(ext.tabs, "query", { active: true, currentWindow: true });
     const tab = tabs[0];
     if (tab?.id == null || !tab.url) throw new Error(t("openPageFirst"));
-    const instanceUrl = inferInstanceUrl(tab.url);
-    if (!instanceUrl) throw new Error(t("openSpecificPage"));
     const results = await callApi<any[]>(ext.scripting, "executeScript", {
       target: { tabId: tab.id },
       func: () => ({
         configuration: document.body?.querySelector("#ytzero-enhance-configuration")?.textContent ?? "",
         appName: document.querySelector<HTMLMetaElement>('meta[name="application-name"]')?.content ?? "",
+        manifestUrl: document.querySelector<HTMLLinkElement>('link[rel="manifest"]')?.href ?? "",
       }),
     });
     const raw = results?.[0]?.result?.configuration;
     if (!raw) throw new Error(t("settingsNotReady"));
     const validation = parseEmbeddedConfigurationText(raw);
     if (!validation.ok) throw new Error(validation.diagnostic);
+    const instanceUrl = inferInstanceUrl(tab.url, results?.[0]?.result?.manifestUrl);
+    if (!instanceUrl) throw new Error(t("openSpecificPage"));
     const permission = hostPermissionPattern(instanceUrl);
     if (permission && ext.permissions && !await callApi<boolean>(ext.permissions, "request", { origins: [permission] })) throw new Error(t("permissionNeeded"));
     const response = await callApi<any>(ext.runtime, "sendMessage", {

@@ -21,9 +21,20 @@ test("replacement CSS covers both classic and experimental embedded controls", (
   expect(css).toContain("yt-sheet-view-model");
 });
 
-test("the custom control bar has no cinema button and routes captions to the application", () => {
+test("the custom control bar omits cinema and capture buttons without removing their commands", () => {
   expect(content).not.toContain('class="cinema"');
+  expect(content).not.toContain('class="capture"');
+  expect(content).toContain('key === "s"');
+  expect(content).toContain('command.command === "capture-frame"');
   expect(content).toContain('type: "ytze-player-event"');
   expect(content).toContain('emitPlayerEvent("captions-toggle-request"');
   expect(content).toContain("ENHANCE_PLAYER_EVENTS.captionsToggleRequest");
+});
+
+test("double-click toggles fullscreen across the iframe surface", () => {
+  const handler = content.slice(content.indexOf("const onSurfaceDoubleClick"), content.indexOf("play.addEventListener"));
+  expect(handler).toContain('target.closest("#ytze-player-controls")');
+  expect(handler).not.toContain('target.closest(".html5-video-player")');
+  expect(handler).toContain("toggleFullscreen()");
+  expect(content).toContain("safariVideo.webkitExitFullscreen?.()");
 });

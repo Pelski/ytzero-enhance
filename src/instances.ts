@@ -21,13 +21,27 @@ export function parseEmbeddedConfigurationText(value: string) {
   catch { return { ok: false as const, diagnostic: t("embeddedSettingsReadFailed") }; }
 }
 
-export function inferInstanceUrl(pageUrl: string): string | null {
+export function inferInstanceUrl(pageUrl: string, applicationResourceUrl = ""): string | null {
   try {
     const url = new URL(pageUrl);
     if (!/^https?:$/.test(url.protocol)) return null;
-    const match = url.pathname.match(/^(.*?)\/watch\/[A-Za-z0-9_-]{11}\/?$/);
-    if (!match) return null;
-    url.pathname = match[1] || "/";
+    if (applicationResourceUrl) {
+      const resource = new URL(applicationResourceUrl, url);
+      if (resource.origin === url.origin && /^https?:$/.test(resource.protocol)) {
+        const resourcePath = resource.pathname.match(/^(.*)\/(?:manifest\.webmanifest|favicon\.svg)$/);
+        if (resourcePath) {
+          url.pathname = resourcePath[1] || "/";
+          url.search = "";
+          url.hash = "";
+          return url.toString().replace(/\/$/, "");
+        }
+      }
+    }
+    const pathname = url.pathname.replace(/\/+$/, "");
+    const route = pathname.match(/^(.*)\/(?:search|discovery|shorts|live|watch|channel|subscriptions|playlists|playlist|followed-playlists|watchlist|downloads|liked|history|archive|cleanup|insights|settings|import|restore)(?:\/.*)?$/);
+    // A path that does not end in a known application route is the homepage.
+    // This also preserves an installation prefix such as /apps/ytzero.
+    url.pathname = route ? route[1] || "/" : pathname || "/";
     url.search = "";
     url.hash = "";
     return url.toString().replace(/\/$/, "");

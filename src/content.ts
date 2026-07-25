@@ -2,7 +2,7 @@ import { containedMediaRect, DEFAULT_SETTINGS, formatClock, normalizeSettings, y
 import { BridgeScreenshotRequest, claimScreenshotRequest, configuredPageMatches, embeddedPlayerParameters, EnhanceConfiguration, EnhanceContext, EnhancePlayerCommand, ENHANCE_BRIDGE_EVENTS, ENHANCE_PLAYER_EVENTS, frameStepSeconds, highestQualityAtOrBelow, isEditableShortcutTarget, parseBridgeDetail, playerPresentationState, validateEnhanceContext, validatePlayerCommand } from "./contract";
 import { EMBEDDED_CONFIGURATION_ID, PAIRED_INSTANCES_KEY, parseEmbeddedConfigurationText } from "./instances";
 import { t } from "./i18n";
-import { addApiListener, callApi, ext } from "./webext";
+import { addApiListener, callApi, ext, onExtensionContextInvalidated } from "./webext";
 
 let config = normalizeSettings(DEFAULT_SETTINGS);
 let remoteConfig: EnhanceConfiguration | null = null;
@@ -20,7 +20,6 @@ const PLAYER_ICONS = {
   pause: '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>',
   volume: '<svg viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18 6a9 9 0 0 1 0 12"/></svg>',
   muted: '<svg viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="m22 9-6 6"/><path d="m16 9 6 6"/></svg>',
-  camera: '<svg viewBox="0 0 24 24"><path d="M14.5 4 16 7h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3l1.5-3z"/><circle cx="12" cy="13" r="3"/></svg>',
   captions: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 10.5a2.5 2.5 0 1 0 0 3M17 10.5a2.5 2.5 0 1 0 0 3"/></svg>',
   pip: '<svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><rect x="12" y="10" width="8" height="5" rx="1"/></svg>',
   fullscreen: '<svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>',
@@ -57,6 +56,11 @@ async function reloadConfigurationState() {
 }
 
 function restart() {
+  shutdown();
+  boot();
+}
+
+function shutdown() {
   playerController?.destroy();
   playerController = null;
   bridgeCleanup?.();
@@ -68,8 +72,9 @@ function restart() {
   extensionStatusObserver?.disconnect();
   extensionStatusObserver = null;
   bridgeContext = null;
-  boot();
 }
+
+onExtensionContextInvalidated(shutdown);
 
 function boot() {
   if (window.top === window) {
@@ -216,7 +221,6 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
         <div class="volume-wrap"><button class="mute" aria-label="${t("mute")}">${PLAYER_ICONS.volume}</button><input class="volume" aria-label="${t("volume")}" type="range" min="0" max="1" step="0.05" value="1"></div>
         <span class="time">0:00 / 0:00</span><span class="spacer"></span>
         <button class="captions" aria-label="${t("captions")}" title="${t("captionsShortcut")}">${PLAYER_ICONS.captions}</button>
-        <button class="capture" aria-label="${t("saveFrame")}" title="${t("saveFrameShortcut")}">${PLAYER_ICONS.camera}</button>
         <button class="pip" aria-label="${t("pictureInPicture")}">${PLAYER_ICONS.pip}</button>
         <button class="fullscreen" aria-label="${t("fullscreen")}">${PLAYER_ICONS.fullscreen}</button>
       </div>
@@ -325,8 +329,13 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   };
   const togglePlay = () => video.paused ? video.play().catch(() => {}) : video.pause();
   const toggleFullscreen = () => {
-    const safariVideo = video as HTMLVideoElement & { webkitEnterFullscreen?: () => void };
+    const safariVideo = video as HTMLVideoElement & {
+      webkitEnterFullscreen?: () => void;
+      webkitExitFullscreen?: () => void;
+      webkitDisplayingFullscreen?: boolean;
+    };
     if (document.fullscreenElement) void document.exitFullscreen();
+    else if (safariVideo.webkitDisplayingFullscreen) safariVideo.webkitExitFullscreen?.();
     else if (document.documentElement.requestFullscreen) void document.documentElement.requestFullscreen();
     else safariVideo.webkitEnterFullscreen?.();
   };
@@ -520,7 +529,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   };
   const onSurfaceDoubleClick = (event: MouseEvent) => {
     const target = event.target as Element | null;
-    if (!target || target.closest("#ytze-player-controls") || !target.closest(".html5-video-player")) return;
+    if (!target || target.closest("#ytze-player-controls")) return;
     event.preventDefault(); event.stopImmediatePropagation(); toggleFullscreen();
   };
 
@@ -533,7 +542,6 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   mute.addEventListener("click", () => { video.muted = !video.muted; update(); }, { signal });
   volume.addEventListener("input", () => { video.volume = Number(volume.value); video.muted = false; update(); }, { signal });
   captions.addEventListener("click", toggleCaptions, { signal });
-  q(".capture").addEventListener("click", () => void requestCapture(), { signal });
   q(".pip").addEventListener("click", () => {
     const safariVideo = video as HTMLVideoElement & { webkitSupportsPresentationMode?: (mode: string) => boolean; webkitSetPresentationMode?: (mode: string) => void };
     if (video.requestPictureInPicture) video.requestPictureInPicture().catch(() => say(t("pipUnavailable")));

@@ -60,12 +60,20 @@ describe("configuration contract", () => {
 });
 
 describe("embedded DOM configuration and multiple instances", () => {
-  test("parses the JSON script and infers root or reverse-proxy instance URLs", () => {
+  test("parses the JSON script and infers an instance from every application route", () => {
     expect(parseEmbeddedConfigurationText(JSON.stringify(validConfiguration())).ok).toBe(true);
     expect(parseEmbeddedConfigurationText("<html>").ok).toBe(false);
+    expect(inferInstanceUrl("https://yt.example/")).toBe("https://yt.example");
+    expect(inferInstanceUrl("https://yt.example/settings?tab=player#quality")).toBe("https://yt.example");
+    expect(inferInstanceUrl("https://yt.example/history")).toBe("https://yt.example");
     expect(inferInstanceUrl("https://yt.example/watch/dQw4w9WgXcQ")).toBe("https://yt.example");
     expect(inferInstanceUrl("https://home.test/apps/ytzero/watch/dQw4w9WgXcQ")).toBe("https://home.test/apps/ytzero");
-    expect(inferInstanceUrl("https://yt.example/settings")).toBeNull();
+    expect(inferInstanceUrl("https://home.test/apps/ytzero/settings")).toBe("https://home.test/apps/ytzero");
+    expect(inferInstanceUrl("https://home.test/apps/ytzero/")).toBe("https://home.test/apps/ytzero");
+    expect(inferInstanceUrl("https://yt.example/plugins/archive-view", "https://yt.example/manifest.webmanifest")).toBe("https://yt.example");
+    expect(inferInstanceUrl("https://home.test/apps/ytzero/plugins/archive-view", "/apps/ytzero/manifest.webmanifest")).toBe("https://home.test/apps/ytzero");
+    expect(inferInstanceUrl("https://yt.example/settings", "https://evil.example/manifest.webmanifest")).toBe("https://yt.example");
+    expect(inferInstanceUrl("file:///Applications/YTZero/index.html")).toBeNull();
   });
 
   test("selects the matching instance and keeps one default", () => {

@@ -1,0 +1,30 @@
+name: Feature request
+description: Suggest an improvement or new capability
+title: "feat: "
+labels: [enhancement]
+assignees: [Pelski]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Explain the situation or limitation, not only the proposed implementation.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired behavior
+      description: Describe the user-visible result and which browsers it should support.
+    validations:
+      required: true
+  - type: textarea
+    id: approach
+    attributes:
+      label: Suggested approach or examples
+      description: Add sketches, screenshots, similar extensions or implementation notes when helpful.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Mention workarounds or other approaches you tried.
