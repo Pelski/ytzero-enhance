@@ -266,6 +266,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   let subtitleSize = remoteConfig?.player.captions.style.fontSizePx ?? 19;
   let selectedCaptionLanguage = new URL(location.href).searchParams.get("cc_lang_pref") || remoteConfig?.player.captions.language || "en";
   let captionLanguageUserSelected = false;
+  let captionsEnabled = document.querySelector(".ytp-subtitles-button")?.getAttribute("aria-pressed") === "true";
   let captionMenuOpen = false;
   let lastStateEmit = 0;
   const lifecycle = new AbortController();
@@ -280,7 +281,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     muted: video.muted,
     playbackRate: video.playbackRate,
     captionSize: subtitleSize,
-    captionsEnabled: document.querySelector(".ytp-subtitles-button")?.getAttribute("aria-pressed") === "true",
+    captionsEnabled,
     fullscreen: Boolean(document.fullscreenElement),
     pictureInPicture: document.pictureInPictureElement === video,
   });
@@ -322,7 +323,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     if (!captionLanguageUserSelected) selectedCaptionLanguage = context.playback.captions.language || selectedCaptionLanguage;
     subtitleSize = context.playback.captions.style.fontSizePx;
     applyCaptionPreferences(context.playback.captions);
-    window.setTimeout(() => setCaptionsEnabled(context.playback.captions.enabledByDefault), 300);
+    window.setTimeout(() => void setYouTubeCaptions(context.playback.captions.enabledByDefault, selectedCaptionLanguage, false), 300);
     renderMarkers(context);
   };
 
@@ -333,7 +334,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     toastTimer = window.setTimeout(() => toast.classList.remove("show"), 1500);
   };
   const captionLanguages = () => remoteConfig?.player.captions.availableLanguages ?? [];
-  const captionsAreEnabled = () => document.querySelector(".ytp-subtitles-button")?.getAttribute("aria-pressed") === "true";
+  const captionsAreEnabled = () => captionsEnabled;
   const setCaptionMenuOpen = (open: boolean) => {
     captionMenuOpen = open;
     captionMenu.hidden = !open;
@@ -352,7 +353,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
       option.querySelector(".caption-option-status")!.textContent = selected ? "✓" : "";
     }
   };
-  const setYouTubeCaptions = async (enabled: boolean, language = selectedCaptionLanguage) => {
+  const setYouTubeCaptions = async (enabled: boolean, language = selectedCaptionLanguage, userInitiated = true) => {
     const configured = captionLanguages().find((item) => item.code === language);
     const response = await callApi<any>(ext.runtime, "sendMessage", {
       type: "ytze-set-youtube-captions",
@@ -364,9 +365,10 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
       say(`${t("captionsUnavailable")}: ${response?.error || t("unknown")}`);
       return false;
     }
+    captionsEnabled = response.enabled === true;
     if (enabled) {
       selectedCaptionLanguage = language;
-      captionLanguageUserSelected = true;
+      if (userInitiated) captionLanguageUserSelected = true;
     }
     setCaptionMenuOpen(false);
     window.setTimeout(() => { update(); syncCaptionControls(); }, 150);
@@ -656,7 +658,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   video.playbackRate = desiredRate;
   applyCaptionPreferences(playbackSettings().captions);
   renderCaptionLanguageMenu();
-  window.setTimeout(() => setCaptionsEnabled(Boolean(remoteConfig?.player.captions.enabledByDefault)), 800);
+  window.setTimeout(() => void setYouTubeCaptions(Boolean(remoteConfig?.player.captions.enabledByDefault), selectedCaptionLanguage, false), 800);
   const removeLandscapeFullscreen = installLandscapeFullscreen(video);
   showControls();
   applyPreferredQuality();
@@ -688,12 +690,6 @@ function applyCaptionPreferences(captions: { style: { fontSizePx: number; color:
   document.documentElement.style.setProperty("--ytze-caption-size", `${captions.style.fontSizePx}px`);
   document.documentElement.style.setProperty("--ytze-caption-color", captions.style.color);
   document.documentElement.style.setProperty("--ytze-caption-background", `rgba(0,0,0,${captions.style.backgroundOpacityPercent / 100})`);
-}
-
-function setCaptionsEnabled(enabled: boolean) {
-  const button = document.querySelector<HTMLElement>(".ytp-subtitles-button");
-  const pressed = button?.getAttribute("aria-pressed") === "true";
-  if (button && pressed !== enabled) button.click();
 }
 
 function renderMarkers(context: EnhanceContext) {

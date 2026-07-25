@@ -50,3 +50,10 @@ test("caption control opens a language menu and applies the selection in YouTube
   expect(background).toContain('getOption?.("captions", "tracklist")');
   expect(background).toContain('translationLanguage: { languageCode');
 });
+
+test("caption switch tracks the result of player operations instead of hidden YouTube controls", () => {
+  expect(content).toContain("captionsEnabled = response.enabled === true");
+  expect(content).toContain("const captionsAreEnabled = () => captionsEnabled");
+  expect(content).toContain("setYouTubeCaptions(!captionsAreEnabled())");
+  expect(content).not.toContain('const captionsAreEnabled = () => document.querySelector(".ytp-subtitles-button")');
+});
