@@ -70,6 +70,8 @@ Do not hand-edit or commit generated output:
 
 Use `bun run build` to regenerate them. `bun run safari:project` replaces the generated Xcode wrapper, so use it only when converter-level project structure must change. Once Team/signing values are configured, normal builds should synchronize resources without overwriting signing state.
 
+The logo must match the canonical app icon from `../ytzero/app/src/app-icon.ts`: color `#0a5fff`, the rounded play path, and the same 112/288 layout. Keep `static/icons/icon.svg` synchronized with `scripts/build.ts`; the build check enforces it and Resvg generates clean toolbar and app sizes.
+
 Never commit certificates, private keys, provisioning profiles, archives, Xcode user data, or local signing state.
 
 ## Validation

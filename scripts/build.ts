@@ -1,63 +1,30 @@
 import { copyFile, cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
-import { deflateSync } from "node:zlib";
 import { join } from "node:path";
+import { Resvg } from "@resvg/resvg-js";
 
 const args = new Set(process.argv.slice(2));
 const root = process.cwd();
 const targets = ["chromium", "firefox", "safari"] as const;
 const packageJson = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
 const version = String(packageJson.version);
+const iconColor = "#0a5fff";
+const playPath = "M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z";
 
 if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version)) {
   throw new Error(`Niepoprawna wersja pakietu: ${version}`);
 }
 
-function crc32(data: Uint8Array) {
-  let crc = 0xffffffff;
-  for (const byte of data) {
-    crc ^= byte;
-    for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ (0xedb88320 & -(crc & 1));
-  }
-  return (crc ^ 0xffffffff) >>> 0;
-}
-
-function pngChunk(type: string, data: Uint8Array) {
-  const name = Buffer.from(type);
-  const output = Buffer.alloc(12 + data.length);
-  output.writeUInt32BE(data.length, 0);
-  name.copy(output, 4);
-  Buffer.from(data).copy(output, 8);
-  output.writeUInt32BE(crc32(Buffer.concat([name, Buffer.from(data)])), 8 + data.length);
-  return output;
+function iconSvg(rounded = true) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+    <rect width="512" height="512"${rounded ? ' rx="112"' : ""} fill="${iconColor}"/>
+    <svg x="112" y="112" width="288" height="288" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="${playPath}"/>
+    </svg>
+  </svg>`;
 }
 
 function iconPng(size: number, rounded = true) {
-  const rows = Buffer.alloc((size * 4 + 1) * size);
-  const insideRounded = (x: number, y: number, left: number, top: number, right: number, bottom: number, radius: number) => {
-    const cx = Math.min(Math.max(x, left + radius), right - radius);
-    const cy = Math.min(Math.max(y, top + radius), bottom - radius);
-    return (x - cx) ** 2 + (y - cy) ** 2 <= radius ** 2;
-  };
-  const triangle = (x: number, y: number) => {
-    const ax = 196 / 512, ay = 143 / 512, bx = 196 / 512, by = 369 / 512, cx = 410 / 512, cy = .5;
-    const sign = (px: number, py: number, x1: number, y1: number, x2: number, y2: number) => (px - x2) * (y1 - y2) - (x1 - x2) * (py - y2);
-    const d1 = sign(x, y, ax, ay, bx, by), d2 = sign(x, y, bx, by, cx, cy), d3 = sign(x, y, cx, cy, ax, ay);
-    return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0));
-  };
-  for (let y = 0; y < size; y++) {
-    rows[y * (size * 4 + 1)] = 0;
-    for (let x = 0; x < size; x++) {
-      const nx = (x + .5) / size, ny = (y + .5) / size;
-      const screen = !rounded || insideRounded(nx, ny, 0, 0, 1, 1, 112 / 512);
-      let color = screen ? [37, 99, 235, 255] : [0, 0, 0, 0];
-      if (screen && triangle(nx, ny)) color = [255, 255, 255, 255];
-      const offset = y * (size * 4 + 1) + 1 + x * 4;
-      rows.set(color, offset);
-    }
-  }
-  const header = Buffer.alloc(13);
-  header.writeUInt32BE(size, 0); header.writeUInt32BE(size, 4); header[8] = 8; header[9] = 6;
-  return Buffer.concat([Buffer.from("89504e470d0a1a0a", "hex"), pngChunk("IHDR", header), pngChunk("IDAT", deflateSync(rows)), pngChunk("IEND", new Uint8Array())]);
+  return new Uint8Array(new Resvg(iconSvg(rounded), { fitTo: { mode: "width", value: size } }).render().asPng());
 }
 
 await mkdir(join(root, "static/icons"), { recursive: true });
@@ -136,6 +103,8 @@ if (args.has("--package")) {
 }
 
 if (args.has("--check")) {
+  const iconSvg = await readFile(join(root, "static/icons/icon.svg"), "utf8");
+  if (!iconSvg.includes(`fill="${iconColor}"`) || !iconSvg.includes(`d="${playPath}"`)) throw new Error("Źródłowe SVG nie zgadza się z generatorem ikon");
   for (const target of targets) {
     const manifest = JSON.parse(await readFile(join(root, "dist", target, "manifest.json"), "utf8"));
     if (manifest.manifest_version !== 3 || manifest.name !== "__MSG_extensionName__" || manifest.default_locale !== "en" || manifest.version !== version) throw new Error(`Niepoprawny manifest ${target}`);
