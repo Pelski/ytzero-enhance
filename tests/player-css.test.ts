@@ -56,6 +56,12 @@ test("production content avoids innerHTML assignments rejected by AMO", () => {
   expect(content).toContain("button.replaceChildren");
 });
 
+test("player icons are created as SVG namespace elements", () => {
+  expect(content).toContain('document.createElementNS(SVG_NAMESPACE, "svg")');
+  expect(content).toContain('document.createElementNS(SVG_NAMESPACE, tag)');
+  expect(content).not.toContain("new DOMParser()");
+});
+
 test("caption switch tracks the result of player operations instead of hidden YouTube controls", () => {
   expect(content).toContain("captionsEnabled = response.enabled === true");
   expect(content).toContain("const captionsAreEnabled = () => captionsEnabled");

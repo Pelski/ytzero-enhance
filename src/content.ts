@@ -15,23 +15,33 @@ let extensionStatusObserver: MutationObserver | null = null;
 let activeInstanceUrl = "";
 let lastEmbeddedConfigurationText = "";
 
-const PLAYER_ICONS = {
-  play: '<svg viewBox="0 0 24 24"><path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z"/></svg>',
-  pause: '<svg viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>',
-  volume: '<svg viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18 6a9 9 0 0 1 0 12"/></svg>',
-  muted: '<svg viewBox="0 0 24 24"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="m22 9-6 6"/><path d="m16 9 6 6"/></svg>',
-  captions: '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 10.5a2.5 2.5 0 1 0 0 3M17 10.5a2.5 2.5 0 1 0 0 3"/></svg>',
-  pip: '<svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><rect x="12" y="10" width="8" height="5" rx="1"/></svg>',
-  fullscreen: '<svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>',
-  minimize: '<svg viewBox="0 0 24 24"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M16 3v3a2 2 0 0 0 2 2h3"/><path d="M8 21v-3a2 2 0 0 0-2-2H3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>',
-};
-const PLAYER_ICON_STATE = new WeakMap<Element, string>();
+const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
+type PlayerIconShape = ["path" | "rect", Record<string, string>];
+type PlayerIcon = readonly PlayerIconShape[];
 
-function setPlayerIcon(button: Element, markup: string) {
-  if (PLAYER_ICON_STATE.get(button) === markup) return;
-  const icon = new DOMParser().parseFromString(markup, "image/svg+xml").documentElement;
-  button.replaceChildren(document.importNode(icon, true));
-  PLAYER_ICON_STATE.set(button, markup);
+const PLAYER_ICONS = {
+  play: [["path", { d: "M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z" }]],
+  pause: [["rect", { x: "6", y: "4", width: "4", height: "16", rx: "1" }], ["rect", { x: "14", y: "4", width: "4", height: "16", rx: "1" }]],
+  volume: [["path", { d: "M11 5 6 9H2v6h4l5 4z" }], ["path", { d: "M15.5 8.5a5 5 0 0 1 0 7" }], ["path", { d: "M18 6a9 9 0 0 1 0 12" }]],
+  muted: [["path", { d: "M11 5 6 9H2v6h4l5 4z" }], ["path", { d: "m22 9-6 6" }], ["path", { d: "m16 9 6 6" }]],
+  captions: [["rect", { x: "3", y: "5", width: "18", height: "14", rx: "2" }], ["path", { d: "M10 10.5a2.5 2.5 0 1 0 0 3M17 10.5a2.5 2.5 0 1 0 0 3" }]],
+  pip: [["rect", { x: "2", y: "3", width: "20", height: "14", rx: "2" }], ["rect", { x: "12", y: "10", width: "8", height: "5", rx: "1" }]],
+  fullscreen: [["path", { d: "M8 3H5a2 2 0 0 0-2 2v3" }], ["path", { d: "M16 3h3a2 2 0 0 1 2 2v3" }], ["path", { d: "M8 21H5a2 2 0 0 1-2-2v-3" }], ["path", { d: "M16 21h3a2 2 0 0 0 2-2v-3" }]],
+  minimize: [["path", { d: "M8 3v3a2 2 0 0 1-2 2H3" }], ["path", { d: "M16 3v3a2 2 0 0 0 2 2h3" }], ["path", { d: "M8 21v-3a2 2 0 0 0-2-2H3" }], ["path", { d: "M16 21v-3a2 2 0 0 1 2-2h3" }]],
+} satisfies Record<string, PlayerIcon>;
+const PLAYER_ICON_STATE = new WeakMap<Element, PlayerIcon>();
+
+function setPlayerIcon(button: Element, iconDefinition: PlayerIcon) {
+  if (PLAYER_ICON_STATE.get(button) === iconDefinition) return;
+  const icon = document.createElementNS(SVG_NAMESPACE, "svg");
+  icon.setAttribute("viewBox", "0 0 24 24");
+  for (const [tag, attributes] of iconDefinition) {
+    const shape = document.createElementNS(SVG_NAMESPACE, tag);
+    for (const [name, value] of Object.entries(attributes)) shape.setAttribute(name, value);
+    icon.append(shape);
+  }
+  button.replaceChildren(icon);
+  PLAYER_ICON_STATE.set(button, iconDefinition);
 }
 
 void Promise.all([
@@ -221,7 +231,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     if (className) element.className = className;
     return element;
   };
-  const iconButton = (className: string, label: string, icon: string) => {
+  const iconButton = (className: string, label: string, icon: PlayerIcon) => {
     const button = create("button", className) as HTMLButtonElement;
     button.type = "button";
     button.setAttribute("aria-label", label);

@@ -12,7 +12,7 @@ const EN: Record<string, string> = {
   settingsSynced: "Settings synchronized",
   quickSettings: "Quick extension settings",
   redirectLinks: "Redirect links",
-  redirectLinksDescription: "YouTube will open in the default instance",
+  redirectLinksDescription: "Supported video links will open in the default instance",
   enhancePlayer: "Enhance the player",
   enhancePlayerDescription: "Appearance and behavior consistent with YT Zero",
   saveFrame: "Save frame",
@@ -37,7 +37,7 @@ const EN: Record<string, string> = {
   frameStep: "Frame stepping",
   captions: "Captions",
   screenshots: "Screenshots",
-  defaultInstanceTip: "Redirected YouTube links go to this instance. The player on every connected instance uses its own profile.",
+  defaultInstanceTip: "Redirected video links go to this instance. The player on every connected instance uses its own profile.",
   connectYtZero: "Connect to YT Zero",
   enhancementsDisabled: "Enhancements are disabled in YT Zero",
   findingSettings: "Looking for YT Zero settings in this tab…",
@@ -104,7 +104,7 @@ const EN: Record<string, string> = {
   invalidScreenshotRequest: "Invalid bridge screenshot request",
   activeEmbeddedPlayerNotFound: "No active embedded player found",
   activeTabNotFound: "No active tab found",
-  captureOutsideYouTubeRejected: "A capture outside the YouTube player was rejected",
+  captureOutsideYouTubeRejected: "A capture outside the embedded player was rejected",
   playerPositionFailed: "Could not determine the player position",
 };
 

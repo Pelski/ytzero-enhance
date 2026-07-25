@@ -51,4 +51,7 @@ test("public-facing copy avoids the upstream brand name", async () => {
     const copy = await Bun.file(new URL(`../${file}`, import.meta.url)).text();
     expect(copy, file).not.toContain(forbidden);
   }
+  const fallbackSource = await Bun.file(new URL("../src/i18n.ts", import.meta.url)).text();
+  const fallbackMessages = [...fallbackSource.matchAll(/^\s+[A-Za-z][A-Za-z0-9]+:\s*"([^"]*)"/gm)].map((match) => match[1]);
+  for (const message of fallbackMessages) expect(message).not.toContain(forbidden);
 });
