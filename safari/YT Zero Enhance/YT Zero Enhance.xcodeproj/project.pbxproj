@@ -1,0 +1,1023 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1AE6294F301555F6000FEC54 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE6294E301555F6000FEC54 /* AppDelegate.swift */; };
+		1AE62951301555F6000FEC54 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE62950301555F6000FEC54 /* SceneDelegate.swift */; };
+		1AE62954301555F6000FEC54 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1AE62952301555F6000FEC54 /* LaunchScreen.storyboard */; };
+		1AE62957301555F6000FEC54 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1AE62955301555F6000FEC54 /* Main.storyboard */; };
+		1AE62960301555F6000FEC54 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE6295F301555F6000FEC54 /* AppDelegate.swift */; };
+		1AE62963301555F6000FEC54 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 1AE62961301555F6000FEC54 /* Main.storyboard */; };
+		1AE6296A301555F6000FEC54 /* YT Zero Enhance Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 1AE62969301555F6000FEC54 /* YT Zero Enhance Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		1AE62974301555F6000FEC54 /* YT Zero Enhance Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 1AE62973301555F6000FEC54 /* YT Zero Enhance Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		1AE62979301555F6000FEC54 /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = 1AE6293E301555F5000FEC54 /* Main.html */; };
+		1AE6297A301555F6000FEC54 /* Main.html in Resources */ = {isa = PBXBuildFile; fileRef = 1AE6293E301555F5000FEC54 /* Main.html */; };
+		1AE6297B301555F6000FEC54 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 1AE62940301555F5000FEC54 /* Icon.png */; };
+		1AE6297C301555F6000FEC54 /* Icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 1AE62940301555F5000FEC54 /* Icon.png */; };
+		1AE6297D301555F6000FEC54 /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = 1AE62941301555F5000FEC54 /* Style.css */; };
+		1AE6297E301555F6000FEC54 /* Style.css in Resources */ = {isa = PBXBuildFile; fileRef = 1AE62941301555F5000FEC54 /* Style.css */; };
+		1AE6297F301555F6000FEC54 /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = 1AE62942301555F5000FEC54 /* Script.js */; };
+		1AE62980301555F6000FEC54 /* Script.js in Resources */ = {isa = PBXBuildFile; fileRef = 1AE62942301555F5000FEC54 /* Script.js */; };
+		1AE62981301555F6000FEC54 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE62943301555F5000FEC54 /* ViewController.swift */; };
+		1AE62982301555F6000FEC54 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE62943301555F5000FEC54 /* ViewController.swift */; };
+		1AE62983301555F6000FEC54 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1AE62944301555F6000FEC54 /* Assets.xcassets */; };
+		1AE62984301555F6000FEC54 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1AE62944301555F6000FEC54 /* Assets.xcassets */; };
+		1AE62985301555F6000FEC54 /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE62946301555F6000FEC54 /* SafariWebExtensionHandler.swift */; };
+		1AE62986301555F6000FEC54 /* SafariWebExtensionHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AE62946301555F6000FEC54 /* SafariWebExtensionHandler.swift */; };
+		1AE629A3301555F6000FEC54 /* popup.js in Resources */ = {isa = PBXBuildFile; fileRef = 1AE62998301555F6000FEC54 /* popup.js */; };
+		1AE629A4301555F6000FEC54 /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = 1AE62999301555F6000FEC54 /* background.js */; };
+		1AE629A5301555F6000FEC54 /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = 1AE6299A301555F6000FEC54 /* popup.html */; };
+		1AE629A6301555F6000FEC54 /* options.js in Resources */ = {isa = PBXBuildFile; fileRef = 1AE6299B301555F6000FEC54 /* options.js */; };
+		1AE629A7301555F6000FEC54 /* icons in Resources */ = {isa = PBXBuildFile; fileRef = 1AE6299C301555F6000FEC54 /* icons */; };
+		1AE629A8301555F6000FEC54 /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 1AE6299D301555F6000FEC54 /* manifest.json */; };
+		1AE629A9301555F6000FEC54 /* player.css in Resources */ = {isa = PBXBuildFile; fileRef = 1AE6299E301555F6000FEC54 /* player.css */; };
+		1AE629AA301555F6000FEC54 /* options.html in Resources */ = {isa = PBXBuildFile; fileRef = 1AE6299F301555F6000FEC54 /* options.html */; };
+		1AE629AB301555F6000FEC54 /* popup.css in Resources */ = {isa = PBXBuildFile; fileRef = 1AE629A0301555F6000FEC54 /* popup.css */; };
+		1AE629AC301555F6000FEC54 /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = 1AE629A1301555F6000FEC54 /* content.js */; };
+		1AE629AD301555F6000FEC54 /* options.css in Resources */ = {isa = PBXBuildFile; fileRef = 1AE629A2301555F6000FEC54 /* options.css */; };
+		1AE629AE301555F6000FEC54 /* popup.js in Resources */ = {isa = PBXBuildFile; fileRef = 1AE62998301555F6000FEC54 /* popup.js */; };
+		1AE629AF301555F6000FEC54 /* background.js in Resources */ = {isa = PBXBuildFile; fileRef = 1AE62999301555F6000FEC54 /* background.js */; };
+		1AE629B0301555F6000FEC54 /* popup.html in Resources */ = {isa = PBXBuildFile; fileRef = 1AE6299A301555F6000FEC54 /* popup.html */; };
+		1AE629B1301555F6000FEC54 /* options.js in Resources */ = {isa = PBXBuildFile; fileRef = 1AE6299B301555F6000FEC54 /* options.js */; };
+		1AE629B2301555F6000FEC54 /* icons in Resources */ = {isa = PBXBuildFile; fileRef = 1AE6299C301555F6000FEC54 /* icons */; };
+		1AE629B3301555F6000FEC54 /* manifest.json in Resources */ = {isa = PBXBuildFile; fileRef = 1AE6299D301555F6000FEC54 /* manifest.json */; };
+		1AE629B4301555F6000FEC54 /* player.css in Resources */ = {isa = PBXBuildFile; fileRef = 1AE6299E301555F6000FEC54 /* player.css */; };
+		1AE629B5301555F6000FEC54 /* options.html in Resources */ = {isa = PBXBuildFile; fileRef = 1AE6299F301555F6000FEC54 /* options.html */; };
+		1AE629B6301555F6000FEC54 /* popup.css in Resources */ = {isa = PBXBuildFile; fileRef = 1AE629A0301555F6000FEC54 /* popup.css */; };
+		1AE629B7301555F6000FEC54 /* content.js in Resources */ = {isa = PBXBuildFile; fileRef = 1AE629A1301555F6000FEC54 /* content.js */; };
+		1AE629B8301555F6000FEC54 /* options.css in Resources */ = {isa = PBXBuildFile; fileRef = 1AE629A2301555F6000FEC54 /* options.css */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1AE6296B301555F6000FEC54 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AE62938301555F5000FEC54 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1AE62968301555F6000FEC54;
+			remoteInfo = "YT Zero Enhance Extension (iOS)";
+		};
+		1AE62975301555F6000FEC54 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1AE62938301555F5000FEC54 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1AE62972301555F6000FEC54;
+			remoteInfo = "YT Zero Enhance Extension (macOS)";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		1AE6298C301555F6000FEC54 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				1AE6296A301555F6000FEC54 /* YT Zero Enhance Extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AE62993301555F6000FEC54 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				1AE62974301555F6000FEC54 /* YT Zero Enhance Extension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		1AE6293F301555F5000FEC54 /* Base */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = Base; path = Base.lproj/Main.html; sourceTree = "<group>"; };
+		1AE62940301555F5000FEC54 /* Icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Icon.png; sourceTree = "<group>"; };
+		1AE62941301555F5000FEC54 /* Style.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = Style.css; sourceTree = "<group>"; };
+		1AE62942301555F5000FEC54 /* Script.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = Script.js; sourceTree = "<group>"; };
+		1AE62943301555F5000FEC54 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		1AE62944301555F6000FEC54 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		1AE62946301555F6000FEC54 /* SafariWebExtensionHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SafariWebExtensionHandler.swift; sourceTree = "<group>"; };
+		1AE6294B301555F6000FEC54 /* YT Zero Enhance.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "YT Zero Enhance.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1AE6294E301555F6000FEC54 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		1AE62950301555F6000FEC54 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		1AE62953301555F6000FEC54 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		1AE62956301555F6000FEC54 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		1AE62958301555F6000FEC54 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1AE6295D301555F6000FEC54 /* YT Zero Enhance.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "YT Zero Enhance.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1AE6295F301555F6000FEC54 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		1AE62962301555F6000FEC54 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		1AE62964301555F6000FEC54 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1AE62969301555F6000FEC54 /* YT Zero Enhance Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "YT Zero Enhance Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1AE6296E301555F6000FEC54 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1AE62973301555F6000FEC54 /* YT Zero Enhance Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "YT Zero Enhance Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
+		1AE62978301555F6000FEC54 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1AE62998301555F6000FEC54 /* popup.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = popup.js; path = Resources/popup.js; sourceTree = "<group>"; };
+		1AE62999301555F6000FEC54 /* background.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = background.js; path = Resources/background.js; sourceTree = "<group>"; };
+		1AE6299A301555F6000FEC54 /* popup.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = popup.html; path = Resources/popup.html; sourceTree = "<group>"; };
+		1AE6299B301555F6000FEC54 /* options.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = options.js; path = Resources/options.js; sourceTree = "<group>"; };
+		1AE6299C301555F6000FEC54 /* icons */ = {isa = PBXFileReference; lastKnownFileType = folder; name = icons; path = Resources/icons; sourceTree = "<group>"; };
+		1AE6299D301555F6000FEC54 /* manifest.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; name = manifest.json; path = Resources/manifest.json; sourceTree = "<group>"; };
+		1AE6299E301555F6000FEC54 /* player.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = player.css; path = Resources/player.css; sourceTree = "<group>"; };
+		1AE6299F301555F6000FEC54 /* options.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; name = options.html; path = Resources/options.html; sourceTree = "<group>"; };
+		1AE629A0301555F6000FEC54 /* popup.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = popup.css; path = Resources/popup.css; sourceTree = "<group>"; };
+		1AE629A1301555F6000FEC54 /* content.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = content.js; path = Resources/content.js; sourceTree = "<group>"; };
+		1AE629A2301555F6000FEC54 /* options.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; name = options.css; path = Resources/options.css; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1AE62948301555F6000FEC54 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AE6295A301555F6000FEC54 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AE62966301555F6000FEC54 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AE62970301555F6000FEC54 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1AE62937301555F5000FEC54 = {
+			isa = PBXGroup;
+			children = (
+				1AE6293C301555F5000FEC54 /* Shared (App) */,
+				1AE62945301555F6000FEC54 /* Shared (Extension) */,
+				1AE6294D301555F6000FEC54 /* iOS (App) */,
+				1AE6295E301555F6000FEC54 /* macOS (App) */,
+				1AE6296D301555F6000FEC54 /* iOS (Extension) */,
+				1AE62977301555F6000FEC54 /* macOS (Extension) */,
+				1AE6294C301555F6000FEC54 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		1AE6293C301555F5000FEC54 /* Shared (App) */ = {
+			isa = PBXGroup;
+			children = (
+				1AE62943301555F5000FEC54 /* ViewController.swift */,
+				1AE62944301555F6000FEC54 /* Assets.xcassets */,
+				1AE6293D301555F5000FEC54 /* Resources */,
+			);
+			path = "Shared (App)";
+			sourceTree = "<group>";
+		};
+		1AE6293D301555F5000FEC54 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				1AE6293E301555F5000FEC54 /* Main.html */,
+				1AE62940301555F5000FEC54 /* Icon.png */,
+				1AE62941301555F5000FEC54 /* Style.css */,
+				1AE62942301555F5000FEC54 /* Script.js */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		1AE62945301555F6000FEC54 /* Shared (Extension) */ = {
+			isa = PBXGroup;
+			children = (
+				1AE62997301555F6000FEC54 /* Resources */,
+				1AE62946301555F6000FEC54 /* SafariWebExtensionHandler.swift */,
+			);
+			path = "Shared (Extension)";
+			sourceTree = "<group>";
+		};
+		1AE6294C301555F6000FEC54 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1AE6294B301555F6000FEC54 /* YT Zero Enhance.app */,
+				1AE6295D301555F6000FEC54 /* YT Zero Enhance.app */,
+				1AE62969301555F6000FEC54 /* YT Zero Enhance Extension.appex */,
+				1AE62973301555F6000FEC54 /* YT Zero Enhance Extension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1AE6294D301555F6000FEC54 /* iOS (App) */ = {
+			isa = PBXGroup;
+			children = (
+				1AE6294E301555F6000FEC54 /* AppDelegate.swift */,
+				1AE62950301555F6000FEC54 /* SceneDelegate.swift */,
+				1AE62952301555F6000FEC54 /* LaunchScreen.storyboard */,
+				1AE62955301555F6000FEC54 /* Main.storyboard */,
+				1AE62958301555F6000FEC54 /* Info.plist */,
+			);
+			path = "iOS (App)";
+			sourceTree = "<group>";
+		};
+		1AE6295E301555F6000FEC54 /* macOS (App) */ = {
+			isa = PBXGroup;
+			children = (
+				1AE6295F301555F6000FEC54 /* AppDelegate.swift */,
+				1AE62961301555F6000FEC54 /* Main.storyboard */,
+				1AE62964301555F6000FEC54 /* Info.plist */,
+			);
+			path = "macOS (App)";
+			sourceTree = "<group>";
+		};
+		1AE6296D301555F6000FEC54 /* iOS (Extension) */ = {
+			isa = PBXGroup;
+			children = (
+				1AE6296E301555F6000FEC54 /* Info.plist */,
+			);
+			path = "iOS (Extension)";
+			sourceTree = "<group>";
+		};
+		1AE62977301555F6000FEC54 /* macOS (Extension) */ = {
+			isa = PBXGroup;
+			children = (
+				1AE62978301555F6000FEC54 /* Info.plist */,
+			);
+			path = "macOS (Extension)";
+			sourceTree = "<group>";
+		};
+		1AE62997301555F6000FEC54 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				1AE62998301555F6000FEC54 /* popup.js */,
+				1AE62999301555F6000FEC54 /* background.js */,
+				1AE6299A301555F6000FEC54 /* popup.html */,
+				1AE6299B301555F6000FEC54 /* options.js */,
+				1AE6299C301555F6000FEC54 /* icons */,
+				1AE6299D301555F6000FEC54 /* manifest.json */,
+				1AE6299E301555F6000FEC54 /* player.css */,
+				1AE6299F301555F6000FEC54 /* options.html */,
+				1AE629A0301555F6000FEC54 /* popup.css */,
+				1AE629A1301555F6000FEC54 /* content.js */,
+				1AE629A2301555F6000FEC54 /* options.css */,
+			);
+			name = Resources;
+			path = "Shared (Extension)";
+			sourceTree = SOURCE_ROOT;
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1AE6294A301555F6000FEC54 /* YT Zero Enhance (iOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1AE6298D301555F6000FEC54 /* Build configuration list for PBXNativeTarget "YT Zero Enhance (iOS)" */;
+			buildPhases = (
+				1AE62947301555F6000FEC54 /* Sources */,
+				1AE62948301555F6000FEC54 /* Frameworks */,
+				1AE62949301555F6000FEC54 /* Resources */,
+				1AE6298C301555F6000FEC54 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1AE6296C301555F6000FEC54 /* PBXTargetDependency */,
+			);
+			name = "YT Zero Enhance (iOS)";
+			packageProductDependencies = (
+			);
+			productName = "YT Zero Enhance (iOS)";
+			productReference = 1AE6294B301555F6000FEC54 /* YT Zero Enhance.app */;
+			productType = "com.apple.product-type.application";
+		};
+		1AE6295C301555F6000FEC54 /* YT Zero Enhance (macOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1AE62994301555F6000FEC54 /* Build configuration list for PBXNativeTarget "YT Zero Enhance (macOS)" */;
+			buildPhases = (
+				1AE62959301555F6000FEC54 /* Sources */,
+				1AE6295A301555F6000FEC54 /* Frameworks */,
+				1AE6295B301555F6000FEC54 /* Resources */,
+				1AE62993301555F6000FEC54 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1AE62976301555F6000FEC54 /* PBXTargetDependency */,
+			);
+			name = "YT Zero Enhance (macOS)";
+			packageProductDependencies = (
+			);
+			productName = "YT Zero Enhance (macOS)";
+			productReference = 1AE6295D301555F6000FEC54 /* YT Zero Enhance.app */;
+			productType = "com.apple.product-type.application";
+		};
+		1AE62968301555F6000FEC54 /* YT Zero Enhance Extension (iOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1AE62989301555F6000FEC54 /* Build configuration list for PBXNativeTarget "YT Zero Enhance Extension (iOS)" */;
+			buildPhases = (
+				1AE62965301555F6000FEC54 /* Sources */,
+				1AE62966301555F6000FEC54 /* Frameworks */,
+				1AE62967301555F6000FEC54 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "YT Zero Enhance Extension (iOS)";
+			packageProductDependencies = (
+			);
+			productName = "YT Zero Enhance Extension (iOS)";
+			productReference = 1AE62969301555F6000FEC54 /* YT Zero Enhance Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		1AE62972301555F6000FEC54 /* YT Zero Enhance Extension (macOS) */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1AE62990301555F6000FEC54 /* Build configuration list for PBXNativeTarget "YT Zero Enhance Extension (macOS)" */;
+			buildPhases = (
+				1AE6296F301555F6000FEC54 /* Sources */,
+				1AE62970301555F6000FEC54 /* Frameworks */,
+				1AE62971301555F6000FEC54 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "YT Zero Enhance Extension (macOS)";
+			packageProductDependencies = (
+			);
+			productName = "YT Zero Enhance Extension (macOS)";
+			productReference = 1AE62973301555F6000FEC54 /* YT Zero Enhance Extension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1AE62938301555F5000FEC54 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2660;
+				LastUpgradeCheck = 2660;
+				TargetAttributes = {
+					1AE6294A301555F6000FEC54 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					1AE6295C301555F6000FEC54 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					1AE62968301555F6000FEC54 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+					1AE62972301555F6000FEC54 = {
+						CreatedOnToolsVersion = 26.6;
+					};
+				};
+			};
+			buildConfigurationList = 1AE6293B301555F5000FEC54 /* Build configuration list for PBXProject "YT Zero Enhance" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 1AE62937301555F5000FEC54;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 1AE6294C301555F6000FEC54 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1AE6294A301555F6000FEC54 /* YT Zero Enhance (iOS) */,
+				1AE6295C301555F6000FEC54 /* YT Zero Enhance (macOS) */,
+				1AE62968301555F6000FEC54 /* YT Zero Enhance Extension (iOS) */,
+				1AE62972301555F6000FEC54 /* YT Zero Enhance Extension (macOS) */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1AE62949301555F6000FEC54 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AE6297B301555F6000FEC54 /* Icon.png in Resources */,
+				1AE62954301555F6000FEC54 /* LaunchScreen.storyboard in Resources */,
+				1AE62979301555F6000FEC54 /* Main.html in Resources */,
+				1AE6297F301555F6000FEC54 /* Script.js in Resources */,
+				1AE62983301555F6000FEC54 /* Assets.xcassets in Resources */,
+				1AE62957301555F6000FEC54 /* Main.storyboard in Resources */,
+				1AE6297D301555F6000FEC54 /* Style.css in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AE6295B301555F6000FEC54 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AE6297C301555F6000FEC54 /* Icon.png in Resources */,
+				1AE6297E301555F6000FEC54 /* Style.css in Resources */,
+				1AE62963301555F6000FEC54 /* Main.storyboard in Resources */,
+				1AE62980301555F6000FEC54 /* Script.js in Resources */,
+				1AE62984301555F6000FEC54 /* Assets.xcassets in Resources */,
+				1AE6297A301555F6000FEC54 /* Main.html in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AE62967301555F6000FEC54 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AE629AF301555F6000FEC54 /* background.js in Resources */,
+				1AE629B1301555F6000FEC54 /* options.js in Resources */,
+				1AE629B0301555F6000FEC54 /* popup.html in Resources */,
+				1AE629B5301555F6000FEC54 /* options.html in Resources */,
+				1AE629B7301555F6000FEC54 /* content.js in Resources */,
+				1AE629B2301555F6000FEC54 /* icons in Resources */,
+				1AE629B6301555F6000FEC54 /* popup.css in Resources */,
+				1AE629B4301555F6000FEC54 /* player.css in Resources */,
+				1AE629B3301555F6000FEC54 /* manifest.json in Resources */,
+				1AE629B8301555F6000FEC54 /* options.css in Resources */,
+				1AE629AE301555F6000FEC54 /* popup.js in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AE62971301555F6000FEC54 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AE629A4301555F6000FEC54 /* background.js in Resources */,
+				1AE629A6301555F6000FEC54 /* options.js in Resources */,
+				1AE629A5301555F6000FEC54 /* popup.html in Resources */,
+				1AE629AA301555F6000FEC54 /* options.html in Resources */,
+				1AE629AC301555F6000FEC54 /* content.js in Resources */,
+				1AE629A7301555F6000FEC54 /* icons in Resources */,
+				1AE629AB301555F6000FEC54 /* popup.css in Resources */,
+				1AE629A9301555F6000FEC54 /* player.css in Resources */,
+				1AE629A8301555F6000FEC54 /* manifest.json in Resources */,
+				1AE629AD301555F6000FEC54 /* options.css in Resources */,
+				1AE629A3301555F6000FEC54 /* popup.js in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1AE62947301555F6000FEC54 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AE62981301555F6000FEC54 /* ViewController.swift in Sources */,
+				1AE6294F301555F6000FEC54 /* AppDelegate.swift in Sources */,
+				1AE62951301555F6000FEC54 /* SceneDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AE62959301555F6000FEC54 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AE62982301555F6000FEC54 /* ViewController.swift in Sources */,
+				1AE62960301555F6000FEC54 /* AppDelegate.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AE62965301555F6000FEC54 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AE62985301555F6000FEC54 /* SafariWebExtensionHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AE6296F301555F6000FEC54 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AE62986301555F6000FEC54 /* SafariWebExtensionHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1AE6296C301555F6000FEC54 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1AE62968301555F6000FEC54 /* YT Zero Enhance Extension (iOS) */;
+			targetProxy = 1AE6296B301555F6000FEC54 /* PBXContainerItemProxy */;
+		};
+		1AE62976301555F6000FEC54 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1AE62972301555F6000FEC54 /* YT Zero Enhance Extension (macOS) */;
+			targetProxy = 1AE62975301555F6000FEC54 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		1AE6293E301555F5000FEC54 /* Main.html */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1AE6293F301555F5000FEC54 /* Base */,
+			);
+			name = Main.html;
+			sourceTree = "<group>";
+		};
+		1AE62952301555F6000FEC54 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1AE62953301555F6000FEC54 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		1AE62955301555F6000FEC54 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1AE62956301555F6000FEC54 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		1AE62961301555F6000FEC54 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1AE62962301555F6000FEC54 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		1AE62987301555F6000FEC54 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		1AE62988301555F6000FEC54 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		1AE6298A301555F6000FEC54 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "YT Zero Enhance Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "pl.pelski.ytzero-enhance.Extension";
+				PRODUCT_NAME = "YT Zero Enhance Extension";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		1AE6298B301555F6000FEC54 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "YT Zero Enhance Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "pl.pelski.ytzero-enhance.Extension";
+				PRODUCT_NAME = "YT Zero Enhance Extension";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		1AE6298E301555F6000FEC54 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "YT Zero Enhance";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "pl.pelski.ytzero-enhance";
+				PRODUCT_NAME = "YT Zero Enhance";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		1AE6298F301555F6000FEC54 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "iOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "YT Zero Enhance";
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
+				INFOPLIST_KEY_UIMainStoryboardFile = Main;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 15.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "pl.pelski.ytzero-enhance";
+				PRODUCT_NAME = "YT Zero Enhance";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		1AE62991301555F6000FEC54 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "YT Zero Enhance Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "pl.pelski.ytzero-enhance.Extension";
+				PRODUCT_NAME = "YT Zero Enhance Extension";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		1AE62992301555F6000FEC54 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (Extension)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "YT Zero Enhance Extension";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "pl.pelski.ytzero-enhance.Extension";
+				PRODUCT_NAME = "YT Zero Enhance Extension";
+				SDKROOT = macosx;
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		1AE62995301555F6000FEC54 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "YT Zero Enhance";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "pl.pelski.ytzero-enhance";
+				PRODUCT_NAME = "YT Zero Enhance";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		1AE62996301555F6000FEC54 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "macOS (App)/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "YT Zero Enhance";
+				INFOPLIST_KEY_NSMainStoryboardFile = Main;
+				INFOPLIST_KEY_NSPrincipalClass = NSApplication;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					SafariServices,
+					"-framework",
+					WebKit,
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "pl.pelski.ytzero-enhance";
+				PRODUCT_NAME = "YT Zero Enhance";
+				REGISTER_APP_GROUPS = YES;
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1AE6293B301555F5000FEC54 /* Build configuration list for PBXProject "YT Zero Enhance" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1AE62987301555F6000FEC54 /* Debug */,
+				1AE62988301555F6000FEC54 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1AE62989301555F6000FEC54 /* Build configuration list for PBXNativeTarget "YT Zero Enhance Extension (iOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1AE6298A301555F6000FEC54 /* Debug */,
+				1AE6298B301555F6000FEC54 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1AE6298D301555F6000FEC54 /* Build configuration list for PBXNativeTarget "YT Zero Enhance (iOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1AE6298E301555F6000FEC54 /* Debug */,
+				1AE6298F301555F6000FEC54 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1AE62990301555F6000FEC54 /* Build configuration list for PBXNativeTarget "YT Zero Enhance Extension (macOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1AE62991301555F6000FEC54 /* Debug */,
+				1AE62992301555F6000FEC54 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1AE62994301555F6000FEC54 /* Build configuration list for PBXNativeTarget "YT Zero Enhance (macOS)" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1AE62995301555F6000FEC54 /* Debug */,
+				1AE62996301555F6000FEC54 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 1AE62938301555F5000FEC54 /* Project object */;
+}

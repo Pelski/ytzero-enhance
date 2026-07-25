@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "__MSG_extensionName__",
+  "default_locale": "en",
+  "version": "0.1.0",
+  "description": "__MSG_extensionDescription__",
+  "icons": { "16": "icons/icon-16.png", "19": "icons/icon-19.png", "32": "icons/icon-32.png", "38": "icons/icon-38.png", "48": "icons/icon-48.png", "64": "icons/icon-64.png", "128": "icons/icon-128.png" },
+  "action": { "default_title": "__MSG_extensionName__", "default_popup": "popup.html", "default_icon": { "16": "icons/icon-16.png", "19": "icons/icon-19.png", "32": "icons/icon-32.png", "38": "icons/icon-38.png", "64": "icons/icon-64.png" } },
+  "background": { "service_worker": "background.js" },
+  "options_page": "options.html",
+  "permissions": ["storage", "tabs", "webNavigation", "activeTab", "scripting"],
+  "host_permissions": ["https://www.youtube.com/*", "https://www.youtube-nocookie.com/*", "https://youtu.be/*"],
+  "optional_host_permissions": ["http://*/*", "https://*/*"],
+  "content_scripts": [
+    { "matches": ["<all_urls>"], "js": ["content.js"], "run_at": "document_idle", "all_frames": true, "css": ["player.css"] }
+  ],
+  "commands": {
+    "toggle-redirect": { "suggested_key": { "default": "Alt+Shift+Y" }, "description": "__MSG_commandToggleRedirect__" },
+    "capture-frame": { "suggested_key": { "default": "Alt+Shift+S" }, "description": "__MSG_commandCaptureFrame__" }
+  }
+}

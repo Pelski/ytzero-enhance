@@ -1,0 +1,71 @@
+# Dependencies
+/node_modules/
+/.bun/
+
+# Generated extension builds and release archives
+/dist/
+/artifacts/
+/coverage/
+/.nyc_output/
+/test-results/
+/playwright-report/
+
+# Generated raster icons (the source of truth is static/icons/icon.svg)
+/static/icons/icon-*.png
+/safari/YT Zero Enhance/Shared (App)/Assets.xcassets/AppIcon.appiconset/*.png
+
+# build.ts synchronizes this directory from dist/safari
+/safari/YT Zero Enhance/Shared (Extension)/Resources/
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.cer
+*.mobileprovision
+*.provisionprofile
+
+# Xcode/Safari build products and per-user signing state
+DerivedData/
+build/
+*.xcarchive
+*.xcresult
+*.dSYM
+*.dSYM.zip
+*.ipa
+*.app
+*.appex
+**/xcuserdata/
+**/*.xcuserstate
+**/*.xcscmblueprint
+**/*.xccheckout
+*.moved-aside
+.xcode.env.local
+
+# Logs and tool caches
+*.log
+*.tsbuildinfo
+.cache/
+.eslintcache
+.parcel-cache/
+.turbo/
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editors and operating systems
+.DS_Store
+._*
+Thumbs.db
+.idea/
+.vscode/
+.fleet/
+*.swp
+*.swo
+*~

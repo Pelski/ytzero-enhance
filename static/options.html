@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YT Zero Enhance — Instances and settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <main>
+    <header>
+      <img src="icons/icon-128.png" alt="" width="64" height="64">
+      <div><p class="eyebrow" data-i18n="browserExtension">Browser extension</p><h1>YT Zero Enhance</h1><p data-i18n="optionsIntro">Connected instances and active profile settings.</p></div>
+    </header>
+
+    <div id="empty" class="empty" hidden>
+      <div class="empty-icon">▶</div>
+      <h2 data-i18n="connectFirstInstance">Connect your first instance</h2>
+      <p data-i18n="connectFirstHelp">Open any page on YT Zero, click the extension icon and choose “Connect this tab”.</p>
+    </div>
+
+    <div id="content" hidden>
+      <section>
+        <div class="section-heading"><div><p class="eyebrow" data-i18n="yourYtZero">Your YT Zero</p><h2 data-i18n="connectedInstances">Connected instances</h2></div><p class="section-note" data-i18n="addAnotherHelp">To add another one, open it and use the extension icon.</p></div>
+        <div id="instances" class="instances"></div>
+      </section>
+
+      <section>
+        <div class="section-heading settings-heading">
+          <div><p class="eyebrow" data-i18n="defaultInstance">Default instance</p><h2 id="settings-title" data-i18n="playerSettings">Player settings</h2></div>
+          <button id="open-settings" type="button" data-i18n="changeInYtZero">Change in YT Zero</button>
+        </div>
+        <p class="readonly-note"><span aria-hidden="true">✓</span> <span data-i18n="readonlyNote">These values come from the active YT Zero profile and are read-only here.</span></p>
+        <dl class="settings-grid">
+          <div><dt data-i18n="integration">Integration</dt><dd id="cfg-enabled">—</dd></div>
+          <div><dt data-i18n="ytZeroControls">YT Zero controls</dt><dd id="cfg-controls">—</dd></div>
+          <div><dt data-i18n="quality">Quality</dt><dd id="cfg-quality">—</dd></div>
+          <div><dt data-i18n="speed">Speed</dt><dd id="cfg-speed">—</dd></div>
+          <div><dt data-i18n="seek">Seeking</dt><dd id="cfg-seek">—</dd></div>
+          <div><dt data-i18n="frameStep">Frame stepping</dt><dd id="cfg-frame">—</dd></div>
+          <div><dt data-i18n="captions">Captions</dt><dd id="cfg-captions">—</dd></div>
+          <div><dt data-i18n="screenshots">Screenshots</dt><dd id="cfg-screenshot">—</dd></div>
+          <div><dt>SponsorBlock</dt><dd id="cfg-sponsor">—</dd></div>
+        </dl>
+      </section>
+
+      <aside class="tip"><strong data-i18n="defaultInstance">Default instance</strong><span data-i18n="defaultInstanceTip">Redirected YouTube links go to this instance. The player on every connected instance uses its own profile.</span></aside>
+    </div>
+    <output id="status" aria-live="polite"></output>
+  </main>
+  <script src="options.js"></script>
+</body>
+</html>

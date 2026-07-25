@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YT Zero Enhance</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <main>
+    <header>
+      <img src="icons/icon-48.png" width="38" height="38" alt="">
+      <div><h1>YT Zero Enhance</h1><p id="subtitle" data-i18n="tagline">Your videos, your settings</p></div>
+      <span id="state" aria-label="Extension status" data-i18n-aria="extensionState"></span>
+    </header>
+
+    <section id="onboarding" class="onboarding" hidden>
+      <p class="eyebrow" data-i18n="firstRun">First run</p>
+      <h2 data-i18n="connectInstance">Connect your instance</h2>
+      <p class="lead" data-i18n="onboardingLead">Open any page on your YT Zero instance. Once it is loaded, return here and connect the active tab.</p>
+      <div class="steps" aria-label="How to connect YT Zero" data-i18n-aria="pairingAria">
+        <span><b>1</b> <span data-i18n="stepOpenInstance">Open your YT Zero instance</span></span>
+        <span><b>2</b> <span data-i18n="stepClickBelow">Click the button below</span></span>
+      </div>
+      <button id="pair-first" type="button" class="primary wide" data-i18n="pairThisTab">Connect this tab</button>
+      <output id="onboarding-message" aria-live="polite"></output>
+    </section>
+
+    <div id="connected" hidden>
+      <section class="instance-card">
+        <div class="instance-heading"><span class="status-dot"></span><span><small data-i18n="defaultInstance">Default instance</small><strong id="instance-name">YT Zero</strong></span></div>
+        <p id="instance-url"></p>
+        <p id="sync-status" class="sync-status" data-i18n="settingsSynced">Settings synchronized</p>
+      </section>
+
+      <section class="quick-settings" aria-label="Quick extension settings" data-i18n-aria="quickSettings">
+        <label class="row">
+          <span><strong data-i18n="redirectLinks">Redirect links</strong><small data-i18n="redirectLinksDescription">YouTube will open in the default instance</small></span>
+          <input name="redirectEnabled" type="checkbox" role="switch">
+        </label>
+        <label class="row">
+          <span><strong data-i18n="enhancePlayer">Enhance the player</strong><small data-i18n="enhancePlayerDescription">Appearance and behavior consistent with YT Zero</small></span>
+          <input name="enhancePlayer" type="checkbox" role="switch">
+        </label>
+      </section>
+
+      <div class="actions">
+        <button id="capture" type="button"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M14.5 4 16 7h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h3l1.5-3z"/><circle cx="12" cy="13" r="3"/></svg> <span data-i18n="saveFrame">Save frame</span></button>
+        <button id="open-instance" type="button" class="secondary" data-i18n="openYtZero">Open YT Zero</button>
+      </div>
+
+      <button id="pair-another" type="button" class="pair-another" data-i18n="pairAnother">+ Connect the current tab as another instance</button>
+      <footer>
+        <button id="options" type="button" class="link" data-i18n="instancesAndSettings">Instances and settings</button>
+        <output id="message" aria-live="polite"></output>
+      </footer>
+    </div>
+  </main>
+  <script src="popup.js"></script>
+</body>
+</html>

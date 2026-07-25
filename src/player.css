@@ -1,0 +1,77 @@
+html.ytze-active .ytp-chrome-bottom {
+  border-radius: 12px !important;
+}
+html.ytze-active .ytp-play-progress,
+html.ytze-active .ytp-swatch-background-color {
+  background: #f2293a !important;
+}
+html.ytze-active .ytp-chrome-controls {
+  font-family: "Roboto", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif !important;
+}
+html.ytze-replace-controls .ytp-chrome-bottom,
+html.ytze-replace-controls .ytp-gradient-bottom,
+html.ytze-replace-controls .ytp-gradient-top,
+html.ytze-replace-controls .player-controls-background,
+html.ytze-replace-controls .player-controls-bottom,
+html.ytze-replace-controls .player-controls-top,
+html.ytze-replace-controls .ytwPlayerMiddleControlsHost,
+html.ytze-replace-controls .ytwPlayerTopControlsHost,
+html.ytze-replace-controls .ytwPlayerTopControlsPlayerControlsTopRight,
+html.ytze-replace-controls [class*="ytwPlayer"][class*="Controls"],
+html.ytze-replace-controls player-fullscreen-action-menu,
+html.ytze-replace-controls .fullscreen-action-menu,
+html.ytze-replace-controls .ytFullscreenVideoRecommendationsHost,
+html.ytze-replace-controls .watch-on-youtube-button-wrapper,
+html.ytze-replace-controls .ytp-chrome-top,
+html.ytze-replace-controls .ytp-title,
+html.ytze-replace-controls .ytp-large-play-button,
+html.ytze-replace-controls .ytp-pause-overlay,
+html.ytze-replace-controls .ytp-pause-overlay-container,
+html.ytze-replace-controls .ytp-ce-element,
+html.ytze-replace-controls .ytp-cards-teaser,
+html.ytze-replace-controls .ytp-watermark,
+html.ytze-replace-controls .ytp-show-cards-title,
+html.ytze-replace-controls .ytp-tooltip,
+html.ytze-replace-controls .ytp-bezel,
+html.ytze-replace-controls .ytp-settings-menu,
+html.ytze-replace-controls yt-sheet-view-model,
+html.ytze-replace-controls .annotation,
+html.ytze-replace-controls .html5-endscreen,
+html.ytze-replace-controls .ytp-autonav-endscreen-upnext-container,
+html.ytze-replace-controls .videowall-endscreen {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/*
+ * YouTube serves two unrelated embedded-player UIs and changes their class
+ * names in experiments. This structural rule is the actual enforcement:
+ * preserve the media, captions, loading indicator and ad disclosures, and
+ * remove every other direct player layer. The selector list above only covers
+ * portals which YouTube may mount outside the regular player layer tree.
+ */
+html.ytze-replace-controls .html5-video-player >
+  :not(video)
+  :not(.html5-video-container)
+  :not(.ytp-caption-window-container)
+  :not(#ytp-caption-window-container)
+  :not(.ytp-spinner)
+  :not(.ytp-ad-module)
+  :not(.ytp-ad-player-overlay)
+  :not(.ytp-paid-content-overlay)
+  :not([class*="ytp-ad-"])
+  :not([id*="ytp-ad-"]) {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+html.ytze-idle,
+html.ytze-idle * {
+  cursor: none !important;
+}
+html.ytze-active .ytp-caption-segment {
+  color: var(--ytze-caption-color, #fff) !important;
+  font-size: var(--ytze-caption-size, 19px) !important;
+  background: var(--ytze-caption-background, rgba(0, 0, 0, .75)) !important;
+}
