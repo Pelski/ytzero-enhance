@@ -39,6 +39,7 @@ test("public-facing copy avoids the upstream brand name", async () => {
   }
   for (const file of [
     "README.md",
+    "PRIVACY.md",
     "package.json",
     "static/popup.html",
     "static/options.html",

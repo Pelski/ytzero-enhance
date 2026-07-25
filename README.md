@@ -3,7 +3,6 @@
   <h1>YT Zero Enhance</h1>
   <p><strong>A smoother YT Zero experience, wherever you watch.</strong></p>
   <p>
-    <a href="https://github.com/Pelski/ytzero-enhance/actions/workflows/ci.yml"><img src="https://github.com/Pelski/ytzero-enhance/actions/workflows/ci.yml/badge.svg" alt="Build status"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue.svg" alt="AGPL-3.0-only"></a>
     <img src="https://img.shields.io/badge/Manifest-V3-3ea6ff" alt="Manifest V3">
     <img src="https://img.shields.io/badge/locales-EN%20%7C%20PL%20%7C%20DE-f2293a" alt="English, Polish and German">
@@ -11,6 +10,8 @@
 </div>
 
 YT Zero Enhance is the companion browser extension for [YT Zero](https://github.com/Pelski/ytzero). It routes supported video links to your own instance and brings familiar controls, shortcuts, profile settings, SponsorBlock chapters and frame capture to embedded players.
+
+Main project: [Pelski/ytzero](https://github.com/Pelski/ytzero)
 
 > [!IMPORTANT]
 > YT Zero Enhance requires access to a running YT Zero instance. It is not a standalone video client and it does not bypass authentication, advertisements, DRM, region restrictions or bot protection.
@@ -170,11 +171,11 @@ bun run check
 bun run package
 ```
 
-This creates versioned archives in `artifacts/` for Chromium, Firefox and Safari. Keep the version in `package.json` and all three files in `manifests/` identical. Before publishing, follow [the store release checklist](docs/store-release.md), [privacy disclosures](docs/privacy.md) and [the compatibility matrix](docs/embedded-player-compatibility.md).
+This creates versioned archives in `artifacts/` for Chromium, Firefox and Safari. Keep the version in `package.json` and all three files in `manifests/` identical. Before publishing, follow [the store release checklist](docs/store-release.md), [privacy policy](PRIVACY.md) and [the compatibility matrix](docs/embedded-player-compatibility.md).
 
 ## Privacy and permissions
 
-YT Zero Enhance has no analytics, advertising or external backend. Access to supported player hosts is required for its core behavior. Access to a self-hosted instance is optional and requested only after you choose its address. See the complete [privacy policy and store disclosure text](docs/privacy.md).
+YT Zero Enhance has no analytics, advertising or external backend. Access to supported player hosts is required for its core behavior. Access to a self-hosted instance is optional and requested only after you choose its address. See the complete [privacy policy](PRIVACY.md).
 
 ## Development
 

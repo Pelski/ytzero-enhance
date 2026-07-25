@@ -8,7 +8,7 @@
 4. Uruchom `bun run package`.
 5. Rozpakuj wszystkie ZIP-y i sprawdź, że w paczce nie ma źródeł, sourcemap, danych testowych ani sekretów.
 6. Przygotuj screenshoty ustawień oraz playera w rozmiarach wymaganych przez dany store.
-7. Podaj publiczny adres `docs/privacy.md` jako politykę prywatności.
+7. Podaj publiczny adres `PRIVACY.md` jako politykę prywatności.
 8. Wyjaśnij reviewerowi wymagane hosty osadzonego odtwarzacza i opcjonalny dostęp do sparowanej instancji tekstem z sekcji poniżej.
 
 ## Chrome Web Store / Edge Add-ons
