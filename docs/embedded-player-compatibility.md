@@ -23,7 +23,7 @@ Stan issue trackera sprawdzony 25 lipca 2026. Przejrzano wszystkie publiczne zg�
 ## Funkcje lokalnego playera, których rozszerzenie celowo nie emuluje
 
 - bezpośredni eksport obrazu w `videoWidth × videoHeight`;
-- lokalne napisy WebVTT; rozmiar, kolor i tło napisów YouTube są synchronizowane przez bridge;
+- lokalne napisy WebVTT; rozszerzenie używa ścieżek YouTube, ale udostępnia zgodne z lokalnym playerem menu języków oraz synchronizuje rozmiar, kolor i tło;
 - opisy rozdziałów w osobnym panelu; na osi rozszerzenie pokazuje ticki rozdziałów oraz segmenty SponsorBlock;
 - gwarantowane programowe sterowanie jakością strumienia; rozszerzenie przekazuje `vq` i ponawia wybór najwyższego poziomu do progu profilu przez wewnętrzny player, ale YouTube oficjalnie pozostawia jakość algorytmowi adaptacyjnemu i może zmienić ten mechanizm;
 - działanie offline oraz seek po lokalnym pliku;
@@ -56,7 +56,7 @@ Obsługiwane typy to:
 - `ready` — player jest gotowy; `payload.state` zawiera pierwszy snapshot;
 - `state` — snapshot po play/pause, głośności, prędkości, fullscreen/PiP, komendzie oraz maksymalnie raz na sekundę podczas odtwarzania;
 - `shortcut` — każdy skrót obsługiwany przez rozszerzenie wraz z `key`, `code`, logiczną `action`, `repeat` i modyfikatorami;
-- `captions-toggle-request` — kliknięcie przycisku napisów albo `C`;
+- `captions-toggle-request` — szybkie przełączenie napisów skrótem `C`; przycisk napisów otwiera własne menu języków i steruje playerem YouTube bezpośrednio;
 - `ended` — zakończenie filmu;
 - `command-result` — wynik komendy, powiązany przez `payload.requestId`.
 
@@ -89,7 +89,7 @@ Obsługiwane komendy:
 | `toggle-fullscreen`, `enter-fullscreen`, `exit-fullscreen` | `{}` |
 | `request-state` | `{}` |
 
-Przycisk napisów zachowuje również kompatybilny event `ytzero:enhance:captions-toggle-request`. Zawiera on `currentEnabled` i `requestedEnabled`; jeśli stanu nie da się odczytać, oba pola są `null`. Docelowo aplikacja może korzystać wyłącznie z ogólnego `player-event`.
+Skrót `C` zachowuje kompatybilny event `ytzero:enhance:captions-toggle-request`. Zawiera on `currentEnabled` i `requestedEnabled`; jeśli stanu nie da się odczytać, oba pola są `null`. Przycisk CC otwiera menu wzorowane na lokalnym playerze: przełącznik włącza lub wyłącza napisy, a lista pochodzi z `player.captions.availableLanguages`. Wybór ustawia natywną ścieżkę YouTube, a gdy nie ma ścieżki dokładnej, korzysta z tłumaczenia dostępnej ścieżki bazowej.
 
 ## Scenariusze regresji
 
@@ -101,7 +101,7 @@ Sprawdź co najmniej:
 4. PNG, JPEG i WebP przy DPR 1 oraz DPR 2;
 5. film 16:9, pionowy i z letterboxem;
 6. dwa embedy na jednej stronie — zrzut aktywnego/widocznego;
-7. jakość preferowaną, napisy przez `C`, zmianę ich rozmiaru oraz zwijaną głośność;
+7. jakość preferowaną, napisy przez `C`, menu języków (ścieżka dokładna i tłumaczenie), zmianę ich rozmiaru oraz zwijaną głośność;
 8. nawigację `watch`, `shorts`, `live`, `youtu.be`, timestamp oraz instancję pod subpath;
 9. wyłączone przekierowania i skrót `Alt+Shift+Y`;
 10. Chrome/Edge/Brave i Firefox, także z restrykcyjną ochroną śledzenia.

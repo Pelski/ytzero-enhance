@@ -103,6 +103,10 @@ ext.runtime.onMessage.addListener((message: any, sender: any, sendResponse: (val
     void applyPreferredQuality(sender).then(sendResponse, (error) => sendResponse({ ok: false, error: error.message }));
     return true;
   }
+  if (message?.type === "ytze-set-youtube-captions") {
+    void setYouTubeCaptions(message, sender).then(sendResponse, (error) => sendResponse({ ok: false, error: error.message }));
+    return true;
+  }
   if (message?.type === "ytze-bridge-screenshot") {
     void captureBridgeScreenshot(message.request, sender).then(sendResponse, (error) => sendResponse({ ok: false, error: error.message }));
     return true;
@@ -182,6 +186,50 @@ async function applyPreferredQuality(sender: any) {
     },
   });
   return { ok: true, quality: results?.[0]?.result ?? null };
+}
+
+async function setYouTubeCaptions(message: any, sender: any) {
+  if (sender.tab?.id == null || sender.frameId == null || !isYouTubeFrameUrl(sender.url || "")) throw new Error(t("invalidPlayerFrame"));
+  const enabled = message.enabled === true;
+  const language = typeof message.language === "string" && /^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$/.test(message.language) ? message.language : "";
+  const label = typeof message.label === "string" ? message.label.trim().slice(0, 120) : language;
+  if (enabled && !language) throw new Error(t("invalidCaptionLanguage"));
+  const results = await callApi<any[]>(ext.scripting, "executeScript", {
+    target: { tabId: sender.tab.id, frameIds: [sender.frameId] },
+    world: "MAIN",
+    args: [enabled, language, label],
+    func: async (turnOn: boolean, languageCode: string, languageLabel: string) => {
+      const player = document.querySelector(".html5-video-player") as any;
+      if (!player) return { ok: false, error: "player-unavailable" };
+      if (!turnOn) {
+        player.unloadModule?.("captions");
+        return { ok: true, enabled: false, language: languageCode };
+      }
+
+      player.loadModule?.("captions");
+      for (let attempt = 0; attempt < 20; attempt++) {
+        const tracks = player.getOption?.("captions", "tracklist");
+        if (Array.isArray(tracks) && tracks.length) {
+          const normalized = languageCode.toLowerCase();
+          const exact = tracks.find((track: any) => String(track?.languageCode ?? track?.language_code ?? "").toLowerCase() === normalized);
+          if (exact) player.setOption?.("captions", "track", exact);
+          else {
+            const source = tracks.find((track: any) => track?.isTranslatable === true || track?.is_translatable === true) ?? tracks[0];
+            player.setOption?.("captions", "track", {
+              ...source,
+              translationLanguage: { languageCode, languageName: languageLabel || languageCode },
+            });
+          }
+          return { ok: true, enabled: true, language: languageCode, translated: !exact };
+        }
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+
+      player.setOption?.("captions", "track", { languageCode, languageName: languageLabel || languageCode });
+      return { ok: true, enabled: true, language: languageCode, fallback: true };
+    },
+  });
+  return results?.[0]?.result ?? { ok: false, error: t("captionsUnavailable") };
 }
 
 function isYouTubeFrameUrl(url: string) {

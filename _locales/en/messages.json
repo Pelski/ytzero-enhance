@@ -83,6 +83,7 @@
   "pictureInPicture": { "message": "Picture in picture" },
   "fullscreen": { "message": "Fullscreen" },
   "captionsUnavailable": { "message": "Captions unavailable" },
+  "invalidCaptionLanguage": { "message": "Invalid caption language" },
   "pipUnavailable": { "message": "Picture in picture unavailable" },
   "captureError": { "message": "Capture error" },
   "unknown": { "message": "unknown" },

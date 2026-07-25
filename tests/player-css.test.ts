@@ -2,6 +2,7 @@ import { expect, test } from "bun:test";
 
 const css = await Bun.file(new URL("../src/player.css", import.meta.url)).text();
 const content = await Bun.file(new URL("../src/content.ts", import.meta.url)).text();
+const background = await Bun.file(new URL("../src/background.ts", import.meta.url)).text();
 
 test("replacement CSS structurally removes native player layers", () => {
   expect(css).toContain("html.ytze-replace-controls .html5-video-player >");
@@ -37,4 +38,15 @@ test("double-click toggles fullscreen across the iframe surface", () => {
   expect(handler).not.toContain('target.closest(".html5-video-player")');
   expect(handler).toContain("toggleFullscreen()");
   expect(content).toContain("safariVideo.webkitExitFullscreen?.()");
+});
+
+test("caption control opens a language menu and applies the selection in YouTube", () => {
+  expect(content).toContain('class="caption-menu"');
+  expect(content).toContain('class="caption-switch"');
+  expect(content).toContain("availableLanguages");
+  expect(content).toContain('type: "ytze-set-youtube-captions"');
+  expect(content).toContain("setCaptionMenuOpen(!captionMenuOpen)");
+  expect(background).toContain('world: "MAIN"');
+  expect(background).toContain('getOption?.("captions", "tracklist")');
+  expect(background).toContain('translationLanguage: { languageCode');
 });

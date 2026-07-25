@@ -25,7 +25,17 @@ const validConfiguration = (patch: Record<string, unknown> = {}) => ({
   player: {
     replaceControls: true, language: "pl", preferredQuality: "auto", defaultPlaybackRate: 1,
     keyboardSeekSeconds: 5, frameStepFps: 30, autoFullscreenLandscape: false,
-    captions: { enabledByDefault: false, language: "pl", style: { fontSizePx: 19, color: "#ffffff", backgroundOpacityPercent: 75 } },
+    captions: {
+      enabledByDefault: false,
+      language: "pl",
+      availableLanguages: [
+        { code: "en", label: "English" },
+        { code: "pl", label: "Polski" },
+        { code: "de", label: "Deutsch" },
+        { code: "zh-Hans", label: "中文（简体）" },
+      ],
+      style: { fontSizePx: 19, color: "#ffffff", backgroundOpacityPercent: 75 },
+    },
   },
   screenshots: { format: "png", jpegQuality: .92, filenameTemplate: "{channel}_{title}_{timestamp_ms}", templateFields: ["channel", "title"] },
   sponsorBlock: { enabled: true, categories: ["sponsor"] },
@@ -38,11 +48,18 @@ describe("configuration contract", () => {
     const input = validConfiguration({ secret: "must-not-survive" }) as any;
     input.player.frameStepFps = 999;
     input.player.captions.style.backgroundOpacityPercent = -20;
+    input.player.captions.availableLanguages.push(null, { code: "fr" }, { code: 42, label: "Invalid" });
     const result = validateEnhanceConfiguration(input);
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.value.player.frameStepFps).toBe(240);
     expect(result.value.player.captions.style.backgroundOpacityPercent).toBe(0);
+    expect(result.value.player.captions.availableLanguages).toEqual([
+      { code: "en", label: "English" },
+      { code: "pl", label: "Polski" },
+      { code: "de", label: "Deutsch" },
+      { code: "zh-Hans", label: "中文（简体）" },
+    ]);
     expect((result.value as any).secret).toBeUndefined();
   });
 

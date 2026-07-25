@@ -3,7 +3,15 @@ const previewConfiguration = {
   player: {
     replaceControls: true, language: "pl", preferredQuality: "1080p", defaultPlaybackRate: 1.25,
     keyboardSeekSeconds: 5, frameStepFps: 30, autoFullscreenLandscape: false,
-    captions: { enabledByDefault: true, language: "pl", style: { fontSizePx: 19, color: "#ffffff", backgroundOpacityPercent: 75 } },
+    captions: {
+      enabledByDefault: true,
+      language: "pl",
+      availableLanguages: [
+        { code: "en", label: "English" }, { code: "pl", label: "Polski" },
+        { code: "de", label: "Deutsch" }, { code: "zh-Hans", label: "中文（简体）" },
+      ],
+      style: { fontSizePx: 19, color: "#ffffff", backgroundOpacityPercent: 75 },
+    },
   },
   screenshots: { format: "png", jpegQuality: .92, filenameTemplate: "{channel}_{title}_{timestamp_ms}", templateFields: [] },
   sponsorBlock: { enabled: true, categories: ["sponsor", "intro", "outro"] },

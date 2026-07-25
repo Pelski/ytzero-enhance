@@ -31,6 +31,18 @@ export interface CaptionStyle {
   backgroundOpacityPercent: number;
 }
 
+export interface CaptionLanguage {
+  code: string;
+  label: string;
+}
+
+export interface CaptionConfiguration {
+  enabledByDefault: boolean;
+  language: string;
+  availableLanguages: CaptionLanguage[];
+  style: CaptionStyle;
+}
+
 export interface EnhanceConfiguration {
   format: typeof ENHANCE_CONFIGURATION_FORMAT;
   version: typeof ENHANCE_CONFIGURATION_VERSION;
@@ -43,7 +55,7 @@ export interface EnhanceConfiguration {
     keyboardSeekSeconds: number;
     frameStepFps: number;
     autoFullscreenLandscape: boolean;
-    captions: { enabledByDefault: boolean; language: string; style: CaptionStyle };
+    captions: CaptionConfiguration;
   };
   screenshots: {
     format: ScreenshotFormat;
@@ -182,6 +194,17 @@ const style = (value: unknown): CaptionStyle => {
   };
 };
 
+function captionLanguages(value: unknown): CaptionLanguage[] {
+  return Array.isArray(value) ? value.flatMap((entry) => {
+    if (!entry || typeof entry !== "object") return [];
+    const language = entry as Record<string, unknown>;
+    if (typeof language.code !== "string" || typeof language.label !== "string") return [];
+    const code = language.code.trim().slice(0, 32);
+    const label = language.label.trim().slice(0, 120);
+    return code && label ? [{ code, label }] : [];
+  }).slice(0, 250) : [];
+}
+
 export function configuredPageMatches(pageUrl: string, instanceUrl: string): boolean {
   try {
     const page = new URL(pageUrl);
@@ -227,6 +250,7 @@ export function validateEnhanceConfiguration(value: unknown): ConfigurationValid
       captions: {
         enabledByDefault: captions.enabledByDefault === true,
         language: text(captions.language, text(player.language, "en", 16), 16),
+        availableLanguages: captionLanguages(captions.availableLanguages),
         style: style(captions.style),
       },
     },

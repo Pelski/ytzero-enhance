@@ -79,6 +79,7 @@ const EN: Record<string, string> = {
   pictureInPicture: "Picture in picture",
   fullscreen: "Fullscreen",
   captionsUnavailable: "Captions unavailable",
+  invalidCaptionLanguage: "Invalid caption language",
   pipUnavailable: "Picture in picture unavailable",
   captureError: "Capture error",
   unknown: "unknown",

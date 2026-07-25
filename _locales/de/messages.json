@@ -83,6 +83,7 @@
   "pictureInPicture": { "message": "Bild-in-Bild" },
   "fullscreen": { "message": "Vollbild" },
   "captionsUnavailable": { "message": "Untertitel nicht verfügbar" },
+  "invalidCaptionLanguage": { "message": "Ungültige Untertitelsprache" },
   "pipUnavailable": { "message": "Bild-in-Bild nicht verfügbar" },
   "captureError": { "message": "Screenshot-Fehler" },
   "unknown": { "message": "unbekannt" },

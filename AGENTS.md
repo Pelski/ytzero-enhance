@@ -39,6 +39,8 @@ The sibling `../ytzero` repository owns the application-side bridge. Its relevan
 - A double-click anywhere on the iframe surface toggles fullscreen, except when the event comes from the custom controls. Do not depend on YouTube's `.html5-video-player` class for the double-click target.
 - Fullscreen must toggle both ways with the standard Fullscreen API and with Safari's native video fallback (`webkitEnterFullscreen` / `webkitExitFullscreen`).
 - The custom control bar intentionally has no cinema button and no frame-capture button.
+- The captions button opens a local-player-style menu with an on/off switch and the validated `player.captions.availableLanguages` catalog. Choosing a language must update the native YouTube caption track without reloading the iframe; use a narrowly validated background `scripting.executeScript` call in the frame's `MAIN` world.
+- Keep `C` as the quick captions toggle and keep the selected language local to the current YouTube player. The profile's default language remains owned by YT Zero.
 - Frame capture functionality must remain available through the `S` shortcut, extension popup, background messages, and the `capture-frame` bridge command. Removing a controls button does not authorize removing capture logic.
 - The `T` shortcut may request YT Zero theatre/cinema behavior on the containing application page even though there is no cinema button in the embedded controls.
 - Keep keyboard shortcuts usable without focusing the YouTube iframe first, subject to editable-target guards.

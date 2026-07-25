@@ -220,7 +220,13 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
         <button class="play" aria-label="${t("playPause")}">${PLAYER_ICONS.play}</button>
         <div class="volume-wrap"><button class="mute" aria-label="${t("mute")}">${PLAYER_ICONS.volume}</button><input class="volume" aria-label="${t("volume")}" type="range" min="0" max="1" step="0.05" value="1"></div>
         <span class="time">0:00 / 0:00</span><span class="spacer"></span>
-        <button class="captions" aria-label="${t("captions")}" title="${t("captionsShortcut")}">${PLAYER_ICONS.captions}</button>
+        <div class="caption-menu-wrap">
+          <button class="captions" aria-label="${t("captions")}" title="${t("captionsShortcut")}" aria-haspopup="dialog" aria-expanded="false">${PLAYER_ICONS.captions}</button>
+          <div class="caption-menu" role="dialog" aria-label="${t("captions")}" hidden>
+            <div class="caption-toggle"><span>${t("captions")}</span><button class="caption-switch" role="switch" aria-checked="false" aria-label="${t("captions")}"><span></span></button></div>
+            <div class="caption-list" role="listbox" aria-label="${t("captions")}"></div>
+          </div>
+        </div>
         <button class="pip" aria-label="${t("pictureInPicture")}">${PLAYER_ICONS.pip}</button>
         <button class="fullscreen" aria-label="${t("fullscreen")}">${PLAYER_ICONS.fullscreen}</button>
       </div>
@@ -240,6 +246,10 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   const mute = q<HTMLButtonElement>(".mute");
   const volume = q<HTMLInputElement>(".volume");
   const captions = q<HTMLButtonElement>(".captions");
+  const captionMenuWrap = q<HTMLElement>(".caption-menu-wrap");
+  const captionMenu = q<HTMLElement>(".caption-menu");
+  const captionSwitch = q<HTMLButtonElement>(".caption-switch");
+  const captionList = q<HTMLElement>(".caption-list");
   const fullscreen = q<HTMLButtonElement>(".fullscreen");
   const toast = q<HTMLElement>(".toast");
   let toastTimer = 0;
@@ -254,6 +264,9 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   let lastSkippedSegment = "";
   let desiredRate = remoteConfig?.player.defaultPlaybackRate ?? 1;
   let subtitleSize = remoteConfig?.player.captions.style.fontSizePx ?? 19;
+  let selectedCaptionLanguage = new URL(location.href).searchParams.get("cc_lang_pref") || remoteConfig?.player.captions.language || "en";
+  let captionLanguageUserSelected = false;
+  let captionMenuOpen = false;
   let lastStateEmit = 0;
   const lifecycle = new AbortController();
   const signal = lifecycle.signal;
@@ -297,7 +310,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     rate: remoteConfig?.player.defaultPlaybackRate ?? 1,
     keyboardSeekSeconds: remoteConfig?.player.keyboardSeekSeconds ?? config.seekSeconds,
     frameStepFps: remoteConfig?.player.frameStepFps ?? config.frameRate,
-    captions: remoteConfig?.player.captions ?? { enabledByDefault: false, language: "en", style: { fontSizePx: 19, color: "#ffffff", backgroundOpacityPercent: 75 } },
+    captions: remoteConfig?.player.captions ?? { enabledByDefault: false, language: "en", availableLanguages: [], style: { fontSizePx: 19, color: "#ffffff", backgroundOpacityPercent: 75 } },
     chapters: [], sponsorBlockSegments: [],
   };
 
@@ -306,6 +319,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     bridgeContext = context;
     desiredRate = context.playback.rate;
     video.playbackRate = context.playback.rate;
+    if (!captionLanguageUserSelected) selectedCaptionLanguage = context.playback.captions.language || selectedCaptionLanguage;
     subtitleSize = context.playback.captions.style.fontSizePx;
     applyCaptionPreferences(context.playback.captions);
     window.setTimeout(() => setCaptionsEnabled(context.playback.captions.enabledByDefault), 300);
@@ -318,11 +332,70 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     clearTimeout(toastTimer);
     toastTimer = window.setTimeout(() => toast.classList.remove("show"), 1500);
   };
+  const captionLanguages = () => remoteConfig?.player.captions.availableLanguages ?? [];
+  const captionsAreEnabled = () => document.querySelector(".ytp-subtitles-button")?.getAttribute("aria-pressed") === "true";
+  const setCaptionMenuOpen = (open: boolean) => {
+    captionMenuOpen = open;
+    captionMenu.hidden = !open;
+    captions.setAttribute("aria-expanded", String(open));
+    if (open) showControls();
+  };
+  const syncCaptionControls = () => {
+    const enabled = captionsAreEnabled();
+    captions.classList.toggle("active", enabled);
+    captionSwitch.classList.toggle("active", enabled);
+    captionSwitch.setAttribute("aria-checked", String(enabled));
+    for (const option of captionList.querySelectorAll<HTMLButtonElement>("button[data-language]")) {
+      const selected = option.dataset.language === selectedCaptionLanguage;
+      option.classList.toggle("is-selected", selected);
+      option.setAttribute("aria-selected", String(selected));
+      option.querySelector(".caption-option-status")!.textContent = selected ? "✓" : "";
+    }
+  };
+  const setYouTubeCaptions = async (enabled: boolean, language = selectedCaptionLanguage) => {
+    const configured = captionLanguages().find((item) => item.code === language);
+    const response = await callApi<any>(ext.runtime, "sendMessage", {
+      type: "ytze-set-youtube-captions",
+      enabled,
+      language,
+      label: configured?.label ?? language,
+    }).catch((error) => ({ ok: false, error: error.message }));
+    if (!response?.ok) {
+      say(`${t("captionsUnavailable")}: ${response?.error || t("unknown")}`);
+      return false;
+    }
+    if (enabled) {
+      selectedCaptionLanguage = language;
+      captionLanguageUserSelected = true;
+    }
+    setCaptionMenuOpen(false);
+    window.setTimeout(() => { update(); syncCaptionControls(); }, 150);
+    return true;
+  };
+  const renderCaptionLanguageMenu = () => {
+    const languages = captionLanguages();
+    captionList.replaceChildren();
+    for (const language of languages) {
+      const option = document.createElement("button");
+      option.type = "button";
+      option.dataset.language = language.code;
+      option.setAttribute("role", "option");
+      const label = document.createElement("span");
+      label.textContent = language.label;
+      const status = document.createElement("span");
+      status.className = "caption-option-status";
+      option.append(label, status);
+      option.addEventListener("click", () => void setYouTubeCaptions(true, language.code), { signal });
+      captionList.append(option);
+    }
+    syncCaptionControls();
+  };
   const showControls = () => {
     host.classList.add("visible");
     document.documentElement.classList.remove("ytze-idle");
     clearTimeout(idleTimer);
     if (!video.paused) idleTimer = window.setTimeout(() => {
+      if (captionMenuOpen) return;
       host.classList.remove("visible");
       document.documentElement.classList.add("ytze-idle");
     }, 2600);
@@ -386,8 +459,8 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     else if (command.command === "set-muted") video.muted = Boolean(payload.enabled);
     else if (command.command === "toggle-muted") video.muted = !video.muted;
     else if (command.command === "set-playback-rate") { desiredRate = Number(payload.rate); video.playbackRate = desiredRate; }
-    else if (command.command === "set-captions") setCaptionsEnabled(Boolean(payload.enabled));
-    else if (command.command === "toggle-captions") document.querySelector<HTMLElement>(".ytp-subtitles-button")?.click();
+    else if (command.command === "set-captions") await setYouTubeCaptions(Boolean(payload.enabled));
+    else if (command.command === "toggle-captions") await setYouTubeCaptions(!captionsAreEnabled());
     else if (command.command === "set-caption-size") { subtitleSize = Number(payload.pixels); document.documentElement.style.setProperty("--ytze-caption-size", `${subtitleSize}px`); }
     else if (command.command === "capture-frame") await requestCapture();
     else if (command.command === "toggle-fullscreen") toggleFullscreen();
@@ -413,7 +486,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     bigPlay.hidden = !video.paused || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA;
     mute.innerHTML = video.muted || video.volume === 0 ? PLAYER_ICONS.muted : PLAYER_ICONS.volume;
     volume.value = String(video.muted ? 0 : video.volume);
-    captions.classList.toggle("active", document.querySelector(".ytp-subtitles-button")?.getAttribute("aria-pressed") === "true");
+    syncCaptionControls();
     fullscreen.innerHTML = document.fullscreenElement ? PLAYER_ICONS.minimize : PLAYER_ICONS.fullscreen;
     const playback = playbackSettings();
     if (remoteConfig?.sponsorBlock.enabled) {
@@ -464,6 +537,9 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     frameCallback = video.requestVideoFrameCallback(sampleFrames);
   };
   const onKey = (event: KeyboardEvent) => {
+    if (event.key === "Escape" && captionMenuOpen) {
+      event.preventDefault(); event.stopImmediatePropagation(); setCaptionMenuOpen(false); return;
+    }
     if (event.altKey || event.ctrlKey || event.metaKey || isEditableShortcutTarget(event.target)) return;
     const key = event.key.toLowerCase();
     const handled = [" ", "k", "j", "l", "arrowleft", "arrowright", "arrowup", "arrowdown", "m", "s", "f", "c", "+", "=", "-", "_", ",", "."].includes(key) || (key === "t" && Boolean(bridgeContext)) || /^\d$/.test(key);
@@ -541,7 +617,8 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   progress.addEventListener("pointerleave", () => { if (!scrubbing) tooltip.classList.remove("show"); }, { signal });
   mute.addEventListener("click", () => { video.muted = !video.muted; update(); }, { signal });
   volume.addEventListener("input", () => { video.volume = Number(volume.value); video.muted = false; update(); }, { signal });
-  captions.addEventListener("click", toggleCaptions, { signal });
+  captions.addEventListener("click", () => setCaptionMenuOpen(!captionMenuOpen), { signal });
+  captionSwitch.addEventListener("click", () => void setYouTubeCaptions(!captionsAreEnabled()), { signal });
   q(".pip").addEventListener("click", () => {
     const safariVideo = video as HTMLVideoElement & { webkitSupportsPresentationMode?: (mode: string) => boolean; webkitSetPresentationMode?: (mode: string) => void };
     if (video.requestPictureInPicture) video.requestPictureInPicture().catch(() => say(t("pipUnavailable")));
@@ -553,6 +630,9 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   document.addEventListener("keyup", onKeyUp, { capture: true, signal });
   document.addEventListener("click", onSurfaceClick, { capture: true, signal });
   document.addEventListener("dblclick", onSurfaceDoubleClick, { capture: true, signal });
+  document.addEventListener("pointerdown", (event) => {
+    if (captionMenuOpen && !event.composedPath().includes(captionMenuWrap)) setCaptionMenuOpen(false);
+  }, { capture: true, signal });
   document.addEventListener("mousemove", showControls, { passive: true, signal });
   video.addEventListener("play", () => { showControls(); applyPreferredQuality(); emitState("play", true); }, { signal });
   video.addEventListener("pause", () => { showControls(); emitState("pause", true); }, { signal });
@@ -575,6 +655,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   desiredRate = playbackSettings().rate;
   video.playbackRate = desiredRate;
   applyCaptionPreferences(playbackSettings().captions);
+  renderCaptionLanguageMenu();
   window.setTimeout(() => setCaptionsEnabled(Boolean(remoteConfig?.player.captions.enabledByDefault)), 800);
   const removeLandscapeFullscreen = installLandscapeFullscreen(video);
   showControls();
@@ -796,6 +877,20 @@ const CONTROL_STYLES = `
   .volume-wrap { display: flex; align-items: center; }
   .volume { width: 0; opacity: 0; transition: width .18s ease, opacity .18s ease; }
   .volume-wrap:hover .volume, .volume:focus-visible { width: 64px; opacity: 1; }
+  .caption-menu-wrap { position: relative; display: flex; }
+  .caption-menu { position: absolute; right: 0; bottom: 42px; width: 230px; max-height: min(300px, 70vh); padding: 7px; display: flex; flex-direction: column; gap: 8px; color: #fff; background: rgba(22,22,27,.98); border-radius: 14px; box-shadow: 0 18px 42px rgba(0,0,0,.58); pointer-events: auto; overflow: hidden; }
+  .caption-menu[hidden] { display: none; }
+  .caption-toggle { display: flex; align-items: center; justify-content: space-between; padding: 5px 5px 9px; border-bottom: 1px solid rgba(255,255,255,.09); color: rgba(255,255,255,.72); font-size: 12px; }
+  button.caption-switch { position: relative; width: 32px; height: 18px; padding: 0; border-radius: 999px; background: rgba(255,255,255,.22); opacity: 1; }
+  button.caption-switch:hover { background: rgba(255,255,255,.3); }
+  button.caption-switch.active { background: #3ea6ff; }
+  .caption-switch span { position: absolute; left: 3px; top: 3px; width: 12px; height: 12px; border-radius: 50%; background: #fff; transition: transform .16s ease; }
+  .caption-switch.active span { transform: translateX(14px); }
+  .caption-list { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-color: rgba(255,255,255,.28) transparent; padding-top: 4px; }
+  .caption-list button { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; height: auto; min-height: 32px; padding: 7px 8px; border-radius: 8px; color: #fff; font-size: 13px; text-align: left; opacity: 1; }
+  .caption-list button:hover { background: rgba(255,255,255,.09); }
+  .caption-list button.is-selected { color: #3ea6ff; font-weight: 500; background: color-mix(in srgb, #3ea6ff 14%, transparent); }
+  .caption-option-status { display: inline-flex; align-items: center; justify-content: flex-end; min-width: 14px; font-size: 14px; }
   .toast { position: absolute; left: 50%; bottom: 74px; transform: translate(-50%, 5px) scale(.94); padding: 7px 10px; border-radius: 999px; background: rgba(10,10,10,.62); color: #fff; backdrop-filter: blur(7px); opacity: 0; transition: .18s ease; max-width: 80vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; font-weight: 650; }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
   @media (max-width: 480px) { .time, .pip { display: none; } .buttons { gap: 1px; } button { width: 34px; } .controls { padding-inline: 8px; } }
