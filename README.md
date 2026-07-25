@@ -1,7 +1,7 @@
 <div align="center">
   <img src="static/icons/icon.svg" width="112" height="112" alt="YT Zero Enhance logo">
   <h1>YT Zero Enhance</h1>
-  <p><strong>Your self-hosted YT Zero experience, wherever a YouTube player appears.</strong></p>
+  <p><strong>A smoother YT Zero experience, wherever you watch.</strong></p>
   <p>
     <a href="https://github.com/Pelski/ytzero-enhance/actions/workflows/ci.yml"><img src="https://github.com/Pelski/ytzero-enhance/actions/workflows/ci.yml/badge.svg" alt="Build status"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue.svg" alt="AGPL-3.0-only"></a>
@@ -10,10 +10,10 @@
   </p>
 </div>
 
-YT Zero Enhance is the companion browser extension for [YT Zero](https://github.com/Pelski/ytzero). It redirects regular YouTube links to your own instance and brings YT Zero-style controls, shortcuts, profile settings, SponsorBlock chapters and frame capture to embedded YouTube players.
+YT Zero Enhance is the companion browser extension for [YT Zero](https://github.com/Pelski/ytzero). It routes supported video links to your own instance and brings familiar controls, shortcuts, profile settings, SponsorBlock chapters and frame capture to embedded players.
 
 > [!IMPORTANT]
-> YT Zero Enhance requires access to a running YT Zero instance. It is not a standalone YouTube client and it does not bypass authentication, advertisements, DRM, region restrictions or bot protection.
+> YT Zero Enhance requires access to a running YT Zero instance. It is not a standalone video client and it does not bypass authentication, advertisements, DRM, region restrictions or bot protection.
 
 ## Install
 
@@ -37,10 +37,10 @@ https://tools.applemediaservices.com/app-store/
 
 ## What it adds
 
-- Redirects `youtube.com/watch`, `/shorts`, `/live` and `youtu.be` links to `/watch/:videoId` on your default YT Zero instance, preserving timestamps.
+- Redirects supported watch, Shorts, live and short-link URLs to `/watch/:videoId` on your default YT Zero instance, preserving timestamps.
 - Pairs securely from any signed-in YT Zero page; supports multiple local, LAN, HTTPS and reverse-proxy-path instances.
 - Reads the active YT Zero profile's playback speed, seek interval, FPS, quality ceiling, captions, chapters, SponsorBlock and screenshot naming settings.
-- Replaces embedded YouTube chrome with a YT Zero-style control bar, buffering/progress display, chapters, SponsorBlock segments, volume, captions, PiP, fullscreen and theatre mode.
+- Replaces the embedded player's native controls with a YT Zero-style control bar, buffering/progress display, chapters, SponsorBlock segments, volume, captions, PiP, fullscreen and theatre mode.
 - Makes shortcuts work without first focusing the iframe, including approximate frame stepping with `,` / `.`.
 - Captures the visible embedded video frame to PNG, JPEG or WebP.
 - Ships in English, Polish and German, selected from the browser UI language.
@@ -54,7 +54,7 @@ The extension does not modify the YT Zero application or its database.
 |---|---|---|---|
 | Chrome, Chromium, Brave, Vivaldi | `dist/chromium` | Unpacked extension | `ytzero-enhance-chromium-<version>.zip` |
 | Microsoft Edge | `dist/chromium` | Unpacked extension | Chromium ZIP for Edge Add-ons |
-| Firefox 121+ | `dist/firefox` | Temporary add-on | `ytzero-enhance-firefox-<version>.zip` |
+| Firefox 128+ | `dist/firefox` | Temporary add-on | `ytzero-enhance-firefox-<version>.zip` |
 | Safari on macOS | `dist/safari` or Xcode wrapper | Temporary extension / containing app | App Store app |
 | Safari on iPhone and iPad | Xcode wrapper | Containing iOS app | App Store app |
 
@@ -66,7 +66,7 @@ The extension does not modify the YT Zero application or its database.
 4. Choose **Connect this tab**.
 5. Grant access to the instance when your browser asks.
 
-Pair other instances in the same way. Each paired page uses its own active profile; only YouTube redirects use the instance marked as default. The popup lets you toggle redirects and player enhancements, capture a frame, open your instance and manage connections.
+Pair other instances in the same way. Each paired page uses its own active profile; only supported video-link redirects use the instance marked as default. The popup lets you toggle redirects and player enhancements, capture a frame, open your instance and manage connections.
 
 ## Keyboard shortcuts
 
@@ -155,13 +155,13 @@ In Xcode, select the macOS scheme and run the containing app once. Then enable Y
 2. Set your development **Team** and unique bundle identifiers.
 3. Select the iOS scheme and an iPhone/iPad simulator or connected device, then choose **Run**.
 4. Enable the extension in Safari's **Extensions** menu or **Settings → Apps → Safari → Extensions**.
-5. Allow access to YouTube, your YT Zero host and sites containing players you want to enhance.
+5. Allow access to the supported player hosts, your YT Zero host and sites containing players you want to enhance.
 
 The simulator works without a paid membership. Testing on a physical device requires Apple Developer Program membership. Safari distribution uses the containing application, not a browser ZIP.
 
 ## Frame capture notes
 
-The local YT Zero player can export the source video frame and therefore gives the best quality. An embedded YouTube player is cross-origin, so the extension captures the rendered tab and crops the visible video. That result is limited to on-screen resolution; hardware overlays, DRM or another window covering the browser can produce a black frame. Use the local player when exact source pixels matter.
+The local YT Zero player can export the source video frame and therefore gives the best quality. An embedded cross-origin player cannot expose those pixels directly, so the extension captures the rendered tab and crops the visible video. That result is limited to on-screen resolution; hardware overlays, DRM or another window covering the browser can produce a black frame. Use the local player when exact source pixels matter.
 
 ## Packages and releases
 
@@ -174,7 +174,7 @@ This creates versioned archives in `artifacts/` for Chromium, Firefox and Safari
 
 ## Privacy and permissions
 
-YT Zero Enhance has no analytics, advertising or external backend. YouTube access is required for its core behavior. Access to a self-hosted instance is optional and requested only after you choose its address. See the complete [privacy policy and store disclosure text](docs/privacy.md).
+YT Zero Enhance has no analytics, advertising or external backend. Access to supported player hosts is required for its core behavior. Access to a self-hosted instance is optional and requested only after you choose its address. See the complete [privacy policy and store disclosure text](docs/privacy.md).
 
 ## Development
 
@@ -194,4 +194,4 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Se
 
 YT Zero Enhance is free software licensed under the [GNU Affero General Public License v3.0 only](LICENSE).
 
-YouTube is a trademark of Google LLC. YT Zero Enhance is an independent project and is not affiliated with or endorsed by Google, Mozilla, Microsoft or Apple.
+YT Zero Enhance is an independent project and is not affiliated with or endorsed by Google, Mozilla, Microsoft or Apple.

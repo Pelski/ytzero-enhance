@@ -41,14 +41,19 @@ test("double-click toggles fullscreen across the iframe surface", () => {
 });
 
 test("caption control opens a language menu and applies the selection in YouTube", () => {
-  expect(content).toContain('class="caption-menu"');
-  expect(content).toContain('class="caption-switch"');
+  expect(content).toContain('create("div", "caption-menu")');
+  expect(content).toContain('create("button", "caption-switch")');
   expect(content).toContain("availableLanguages");
   expect(content).toContain('type: "ytze-set-youtube-captions"');
   expect(content).toContain("setCaptionMenuOpen(!captionMenuOpen)");
   expect(background).toContain('world: "MAIN"');
   expect(background).toContain('getOption?.("captions", "tracklist")');
   expect(background).toContain('translationLanguage: { languageCode');
+});
+
+test("production content avoids innerHTML assignments rejected by AMO", () => {
+  expect(content).not.toContain(".innerHTML");
+  expect(content).toContain("button.replaceChildren");
 });
 
 test("caption switch tracks the result of player operations instead of hidden YouTube controls", () => {

@@ -9,13 +9,13 @@
 5. Rozpakuj wszystkie ZIP-y i sprawdź, że w paczce nie ma źródeł, sourcemap, danych testowych ani sekretów.
 6. Przygotuj screenshoty ustawień oraz playera w rozmiarach wymaganych przez dany store.
 7. Podaj publiczny adres `docs/privacy.md` jako politykę prywatności.
-8. Wyjaśnij reviewerowi wymagane hosty YouTube i opcjonalny dostęp do sparowanej instancji tekstem z sekcji poniżej.
+8. Wyjaśnij reviewerowi wymagane hosty osadzonego odtwarzacza i opcjonalny dostęp do sparowanej instancji tekstem z sekcji poniżej.
 
 ## Chrome Web Store / Edge Add-ons
 
-Wyślij `ytzero-enhance-chromium-<version>.zip`. W deklaracji single purpose użyj: „Redirect supported YouTube video links to a user-configured self-hosted YT Zero instance and enhance embedded YouTube controls.”
+Wyślij `ytzero-enhance-chromium-<version>.zip`. W deklaracji single purpose użyj: „Redirect supported video links to a user-configured self-hosted YT Zero instance and enhance embedded player controls.”
 
-Uzasadnienie host permission: „The extension needs required access to YouTube embed origins to enhance their controls. Access to HTTP/HTTPS pages is optional and requested only when the user pairs an authenticated self-hosted YT Zero page. It reads the safe configuration embedded in that page and locates the iframe for an explicitly requested screenshot. Data is processed locally and never transmitted.”
+Uzasadnienie host permission: „The extension needs access to supported embed origins to enhance their controls. Access to HTTP/HTTPS pages is optional and requested only when the user pairs an authenticated self-hosted YT Zero page. It reads the safe configuration embedded in that page and locates the iframe for an explicitly requested screenshot. Data is processed locally and never transmitted.”
 
 Nie deklaruj obchodzenia reklam, geoblokad ani logowania. Zrzuty opisuj jako capture of the rendered embedded video, nie source-frame extraction.
 

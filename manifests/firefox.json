@@ -18,5 +18,11 @@
     "toggle-redirect": { "suggested_key": { "default": "Alt+Shift+Y" }, "description": "__MSG_commandToggleRedirect__" },
     "capture-frame": { "suggested_key": { "default": "Alt+Shift+S" }, "description": "__MSG_commandCaptureFrame__" }
   },
-  "browser_specific_settings": { "gecko": { "id": "ytzero-enhance@pelski.dev", "strict_min_version": "121.0" } }
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "ytzero-enhance@pelski.dev",
+      "strict_min_version": "128.0",
+      "data_collection_permissions": { "required": ["none"] }
+    }
+  }
 }

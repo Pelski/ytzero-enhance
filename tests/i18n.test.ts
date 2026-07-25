@@ -30,3 +30,24 @@ test("every localized HTML key exists in the catalogs", async () => {
     for (const key of keys) expect(english[key]?.message, `${file}: ${key}`).toBeTruthy();
   }
 });
+
+test("public-facing copy avoids the upstream brand name", async () => {
+  const forbidden = ["You", "Tube"].join("");
+  for (const locale of ["en", "pl", "de"]) {
+    const catalog = await loadMessages(locale);
+    for (const entry of Object.values(catalog) as Array<{ message: string }>) expect(entry.message).not.toContain(forbidden);
+  }
+  for (const file of [
+    "README.md",
+    "package.json",
+    "static/popup.html",
+    "static/options.html",
+    "docs/privacy.md",
+    "docs/store-release.md",
+    "docs/embedded-player-compatibility.md",
+    ".github/ISSUE_TEMPLATE/bug_report.yml",
+  ]) {
+    const copy = await Bun.file(new URL(`../${file}`, import.meta.url)).text();
+    expect(copy, file).not.toContain(forbidden);
+  }
+});

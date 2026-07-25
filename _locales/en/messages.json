@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "YT Zero Enhance" },
-  "extensionDescription": { "message": "Redirect YouTube links to YT Zero and enhance embedded YouTube players." },
-  "commandToggleRedirect": { "message": "Enable or disable YouTube redirects" },
+  "extensionDescription": { "message": "Make YT Zero better with smoother playback, smart link handling, and more control over every video." },
+  "commandToggleRedirect": { "message": "Enable or disable video-link redirects" },
   "commandCaptureFrame": { "message": "Save the current embedded-player frame" },
   "tagline": { "message": "Your videos, your settings" },
   "extensionState": { "message": "Extension status" },
@@ -16,7 +16,7 @@
   "settingsSynced": { "message": "Settings synchronized" },
   "quickSettings": { "message": "Quick extension settings" },
   "redirectLinks": { "message": "Redirect links" },
-  "redirectLinksDescription": { "message": "YouTube will open in the default instance" },
+  "redirectLinksDescription": { "message": "Supported video links will open in the default instance" },
   "enhancePlayer": { "message": "Enhance the player" },
   "enhancePlayerDescription": { "message": "Appearance and behavior consistent with YT Zero" },
   "saveFrame": { "message": "Save frame" },
@@ -41,7 +41,7 @@
   "frameStep": { "message": "Frame stepping" },
   "captions": { "message": "Captions" },
   "screenshots": { "message": "Screenshots" },
-  "defaultInstanceTip": { "message": "Redirected YouTube links go to this instance. The player on every connected instance uses its own profile." },
+  "defaultInstanceTip": { "message": "Redirected video links go to this instance. The player on every connected instance uses its own profile." },
   "connectYtZero": { "message": "Connect to YT Zero" },
   "enhancementsDisabled": { "message": "Enhancements are disabled in YT Zero" },
   "findingSettings": { "message": "Looking for YT Zero settings in this tab…" },
@@ -108,6 +108,6 @@
   "invalidScreenshotRequest": { "message": "Invalid bridge screenshot request" },
   "activeEmbeddedPlayerNotFound": { "message": "No active embedded player found" },
   "activeTabNotFound": { "message": "No active tab found" },
-  "captureOutsideYouTubeRejected": { "message": "A capture outside the YouTube player was rejected" },
+  "captureOutsideYouTubeRejected": { "message": "A capture outside the embedded player was rejected" },
   "playerPositionFailed": { "message": "Could not determine the player position" }
 }

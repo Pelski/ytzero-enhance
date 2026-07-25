@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "YT Zero Enhance" },
-  "extensionDescription": { "message": "Przekierowuje linki YouTube do YT Zero i ulepsza osadzone odtwarzacze YouTube." },
-  "commandToggleRedirect": { "message": "Włącz lub wyłącz przekierowania YouTube" },
+  "extensionDescription": { "message": "Ulepsz YT Zero: wygodniejsze odtwarzanie, inteligentna obsługa linków i więcej kontroli nad każdym filmem." },
+  "commandToggleRedirect": { "message": "Włącz lub wyłącz przekierowania linków do filmów" },
   "commandCaptureFrame": { "message": "Zapisz bieżącą klatkę osadzonego odtwarzacza" },
   "tagline": { "message": "Twoje filmy, Twoje ustawienia" },
   "extensionState": { "message": "Stan rozszerzenia" },
@@ -16,7 +16,7 @@
   "settingsSynced": { "message": "Ustawienia zsynchronizowane" },
   "quickSettings": { "message": "Szybkie ustawienia rozszerzenia" },
   "redirectLinks": { "message": "Przekierowuj linki" },
-  "redirectLinksDescription": { "message": "YouTube otworzy się w domyślnej instancji" },
+  "redirectLinksDescription": { "message": "Obsługiwane linki otworzą się w domyślnej instancji" },
   "enhancePlayer": { "message": "Ulepszaj odtwarzacz" },
   "enhancePlayerDescription": { "message": "Wygląd i zachowanie zgodne z YT Zero" },
   "saveFrame": { "message": "Zapisz klatkę" },
@@ -41,7 +41,7 @@
   "frameStep": { "message": "Krok klatkowy" },
   "captions": { "message": "Napisy" },
   "screenshots": { "message": "Zrzuty klatek" },
-  "defaultInstanceTip": { "message": "Do tej instancji trafiają przekierowane linki YouTube. Odtwarzacz na każdej połączonej instancji korzysta z jej własnego profilu." },
+  "defaultInstanceTip": { "message": "Do tej instancji trafiają przekierowane linki do filmów. Odtwarzacz na każdej połączonej instancji korzysta z jej własnego profilu." },
   "connectYtZero": { "message": "Połącz z YT Zero" },
   "enhancementsDisabled": { "message": "Ulepszenia wyłączone w YT Zero" },
   "findingSettings": { "message": "Szukam ustawień YT Zero na tej karcie…" },
@@ -108,6 +108,6 @@
   "invalidScreenshotRequest": { "message": "Nieprawidłowe żądanie zrzutu bridge’u" },
   "activeEmbeddedPlayerNotFound": { "message": "Nie znaleziono aktywnego osadzonego odtwarzacza" },
   "activeTabNotFound": { "message": "Nie znaleziono aktywnej karty" },
-  "captureOutsideYouTubeRejected": { "message": "Odrzucono zrzut spoza odtwarzacza YouTube" },
+  "captureOutsideYouTubeRejected": { "message": "Odrzucono zrzut spoza osadzonego odtwarzacza" },
   "playerPositionFailed": { "message": "Nie udało się ustalić położenia odtwarzacza" }
 }

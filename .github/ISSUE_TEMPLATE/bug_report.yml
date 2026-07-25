@@ -50,7 +50,7 @@ body:
     id: context
     attributes:
       label: Logs, screenshots and context
-      description: Include the page type (YouTube, YT Zero or third-party embed) and relevant console output.
+      description: Include the page type (source site, YT Zero or third-party embed) and relevant console output.
   - type: checkboxes
     id: latest
     attributes:

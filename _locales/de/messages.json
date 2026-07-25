@@ -1,7 +1,7 @@
 {
   "extensionName": { "message": "YT Zero Enhance" },
-  "extensionDescription": { "message": "Leitet YouTube-Links zu YT Zero um und verbessert eingebettete YouTube-Player." },
-  "commandToggleRedirect": { "message": "YouTube-Weiterleitungen ein- oder ausschalten" },
+  "extensionDescription": { "message": "Hol mehr aus YT Zero heraus: flüssigere Wiedergabe, smarte Linkverarbeitung und mehr Kontrolle über jedes Video." },
+  "commandToggleRedirect": { "message": "Weiterleitungen von Videolinks ein- oder ausschalten" },
   "commandCaptureFrame": { "message": "Aktuelles Bild des eingebetteten Players speichern" },
   "tagline": { "message": "Deine Videos, deine Einstellungen" },
   "extensionState": { "message": "Erweiterungsstatus" },
@@ -16,7 +16,7 @@
   "settingsSynced": { "message": "Einstellungen synchronisiert" },
   "quickSettings": { "message": "Schnelleinstellungen der Erweiterung" },
   "redirectLinks": { "message": "Links umleiten" },
-  "redirectLinksDescription": { "message": "YouTube wird in der Standardinstanz geöffnet" },
+  "redirectLinksDescription": { "message": "Unterstützte Videolinks werden in der Standardinstanz geöffnet" },
   "enhancePlayer": { "message": "Player verbessern" },
   "enhancePlayerDescription": { "message": "Aussehen und Verhalten wie in YT Zero" },
   "saveFrame": { "message": "Bild speichern" },
@@ -41,7 +41,7 @@
   "frameStep": { "message": "Einzelbildschritt" },
   "captions": { "message": "Untertitel" },
   "screenshots": { "message": "Screenshots" },
-  "defaultInstanceTip": { "message": "Umgeleitete YouTube-Links werden an diese Instanz gesendet. Der Player jeder verbundenen Instanz verwendet das jeweilige Profil." },
+  "defaultInstanceTip": { "message": "Umgeleitete Videolinks werden an diese Instanz gesendet. Der Player jeder verbundenen Instanz verwendet das jeweilige Profil." },
   "connectYtZero": { "message": "Mit YT Zero verbinden" },
   "enhancementsDisabled": { "message": "Verbesserungen sind in YT Zero deaktiviert" },
   "findingSettings": { "message": "YT-Zero-Einstellungen werden in diesem Tab gesucht…" },
@@ -108,6 +108,6 @@
   "invalidScreenshotRequest": { "message": "Ungültige Bridge-Screenshot-Anforderung" },
   "activeEmbeddedPlayerNotFound": { "message": "Kein aktiver eingebetteter Player gefunden" },
   "activeTabNotFound": { "message": "Kein aktiver Tab gefunden" },
-  "captureOutsideYouTubeRejected": { "message": "Ein Screenshot außerhalb des YouTube-Players wurde abgelehnt" },
+  "captureOutsideYouTubeRejected": { "message": "Ein Screenshot außerhalb des eingebetteten Players wurde abgelehnt" },
   "playerPositionFailed": { "message": "Die Position des Players konnte nicht bestimmt werden" }
 }

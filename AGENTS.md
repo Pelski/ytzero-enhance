@@ -11,7 +11,7 @@ The sibling `../ytzero` repository owns the application-side bridge. Its relevan
 ## Source layout
 
 - `src/background.ts` — extension background messaging, paired-instance registry, redirects, captures, and page/player coordination.
-- `src/content.ts` — top-page bridge plus embedded YouTube player controls and shortcuts. It runs in all matching frames.
+- `src/content.ts` — top-page bridge plus embedded player controls and shortcuts. It runs in all matching frames.
 - `src/instances.ts` — embedded configuration parsing, instance URL inference, matching, and settings URLs.
 - `src/contract.ts` — validated, versioned application/player bridge contract and security boundaries.
 - `src/core.ts` — browser-independent URL, settings, filename, timestamp, and screenshot geometry helpers.
@@ -31,21 +31,21 @@ The sibling `../ytzero` repository owns the application-side bridge. Its relevan
 - `inferInstanceUrl()` must retain support for an installation prefix such as `/apps/ytzero`, including when a reverse proxy exposes the app below a path.
 - Do not trust configuration solely because an element has the expected ID. Always validate format, version, bridge version, events, and field shapes through the contract helpers.
 - Pairing an instance requests optional host access only after the user initiates the action. Keep host permissions and origin matching as narrow as the browser APIs allow.
-- Multiple instances are supported. Each page uses its matching instance/profile; only YouTube redirects use the default instance.
+- Multiple instances are supported. Each page uses its matching instance/profile; only supported video-link redirects use the default instance.
 
 ## Embedded player interaction decisions
 
 - A single click on the player surface toggles play/pause.
-- A double-click anywhere on the iframe surface toggles fullscreen, except when the event comes from the custom controls. Do not depend on YouTube's `.html5-video-player` class for the double-click target.
+- A double-click anywhere on the iframe surface toggles fullscreen, except when the event comes from the custom controls. Do not depend on the upstream player's `.html5-video-player` class for the double-click target.
 - Fullscreen must toggle both ways with the standard Fullscreen API and with Safari's native video fallback (`webkitEnterFullscreen` / `webkitExitFullscreen`).
 - The custom control bar intentionally has no cinema button and no frame-capture button.
-- The captions button opens a local-player-style menu with an on/off switch and the validated `player.captions.availableLanguages` catalog. Choosing a language must update the native YouTube caption track without reloading the iframe; use a narrowly validated background `scripting.executeScript` call in the frame's `MAIN` world.
+- The captions button opens a local-player-style menu with an on/off switch and the validated `player.captions.availableLanguages` catalog. Choosing a language must update the native caption track without reloading the iframe; use a narrowly validated background `scripting.executeScript` call in the frame's `MAIN` world.
 - Treat the result of that player operation as the caption switch's source of truth. The hidden native `.ytp-subtitles-button` can keep reporting `aria-pressed="false"` while captions are visibly active, so it must not overwrite the custom control state.
-- Keep `C` as the quick captions toggle and keep the selected language local to the current YouTube player. The profile's default language remains owned by YT Zero.
+- Keep `C` as the quick captions toggle and keep the selected language local to the current embedded player. The profile's default language remains owned by YT Zero.
 - Frame capture functionality must remain available through the `S` shortcut, extension popup, background messages, and the `capture-frame` bridge command. Removing a controls button does not authorize removing capture logic.
 - The `T` shortcut may request YT Zero theatre/cinema behavior on the containing application page even though there is no cinema button in the embedded controls.
-- Keep keyboard shortcuts usable without focusing the YouTube iframe first, subject to editable-target guards.
-- Native YouTube UI suppression must preserve video, captions, loading, and advertisement layers and tolerate both classic and experimental YouTube controls.
+- Keep keyboard shortcuts usable without focusing the embedded iframe first, subject to editable-target guards.
+- Native upstream UI suppression must preserve video, captions, loading, and advertisement layers and tolerate both classic and experimental controls.
 
 ## Extension lifecycle and cross-browser behavior
 
@@ -53,6 +53,10 @@ The sibling `../ytzero` repository owns the application-side bridge. Its relevan
 - Keep Chrome callback APIs and Firefox promise APIs behind the helpers in `src/webext.ts`.
 - Messages crossing page/extension isolated worlds use validated JSON-string details. Preserve synchronous ownership/claim behavior for screenshot events.
 - Avoid adding remotely hosted executable code; store packages must contain reviewable code.
+- Keep Firefox `browser_specific_settings.gecko.data_collection_permissions.required` set to `["none"]`. AMO requires the declaration even though the extension does not collect or transmit data; the build check enforces it.
+- Keep Firefox `strict_min_version` at 128 or newer while the manifest uses `optional_host_permissions`; this applies to desktop and the inherited Android minimum.
+- Avoid `innerHTML` assignments in production extension code. AMO flags them even for controlled markup; construct UI nodes and replace trusted SVG children through DOM APIs instead.
+- Public-facing copy must not use the upstream platform's brand name or mechanically substitute an abbreviation. Describe the behavior naturally with terms such as supported video links, embedded player, source site, or player hosts. Technical domains, manifest permissions, code identifiers, and selectors may retain their required literal values.
 
 ## Generated files and Safari
 

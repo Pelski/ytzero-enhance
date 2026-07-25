@@ -25,6 +25,14 @@ const PLAYER_ICONS = {
   fullscreen: '<svg viewBox="0 0 24 24"><path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/></svg>',
   minimize: '<svg viewBox="0 0 24 24"><path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M16 3v3a2 2 0 0 0 2 2h3"/><path d="M8 21v-3a2 2 0 0 0-2-2H3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/></svg>',
 };
+const PLAYER_ICON_STATE = new WeakMap<Element, string>();
+
+function setPlayerIcon(button: Element, markup: string) {
+  if (PLAYER_ICON_STATE.get(button) === markup) return;
+  const icon = new DOMParser().parseFromString(markup, "image/svg+xml").documentElement;
+  button.replaceChildren(document.importNode(icon, true));
+  PLAYER_ICON_STATE.set(button, markup);
+}
 
 void Promise.all([
   callApi<any>(ext.storage.sync, "get", DEFAULT_SETTINGS),
@@ -208,29 +216,81 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   const host = document.createElement("div");
   host.id = "ytze-player-controls";
   const shadow = host.attachShadow({ mode: "open" });
-  shadow.innerHTML = `<style>${CONTROL_STYLES}</style>
-    <button class="big-play" aria-label="${t("play")}">${PLAYER_ICONS.play}</button>
-    <div class="controls" role="group" aria-label="${t("playerControls")}">
-      <div class="progress" role="slider" tabindex="0" aria-label="${t("progress")}" aria-valuemin="0" aria-valuemax="1000" aria-valuenow="0">
-        <div class="progress-track"><div class="buffered"></div><div class="markers" aria-hidden="true"></div><div class="played"></div></div>
-        <div class="knob"></div>
-        <div class="progress-tooltip"><span class="chapter"></span><span class="hover-time">0:00</span></div>
-      </div>
-      <div class="buttons">
-        <button class="play" aria-label="${t("playPause")}">${PLAYER_ICONS.play}</button>
-        <div class="volume-wrap"><button class="mute" aria-label="${t("mute")}">${PLAYER_ICONS.volume}</button><input class="volume" aria-label="${t("volume")}" type="range" min="0" max="1" step="0.05" value="1"></div>
-        <span class="time">0:00 / 0:00</span><span class="spacer"></span>
-        <div class="caption-menu-wrap">
-          <button class="captions" aria-label="${t("captions")}" title="${t("captionsShortcut")}" aria-haspopup="dialog" aria-expanded="false">${PLAYER_ICONS.captions}</button>
-          <div class="caption-menu" role="dialog" aria-label="${t("captions")}" hidden>
-            <div class="caption-toggle"><span>${t("captions")}</span><button class="caption-switch" role="switch" aria-checked="false" aria-label="${t("captions")}"><span></span></button></div>
-            <div class="caption-list" role="listbox" aria-label="${t("captions")}"></div>
-          </div>
-        </div>
-        <button class="pip" aria-label="${t("pictureInPicture")}">${PLAYER_ICONS.pip}</button>
-        <button class="fullscreen" aria-label="${t("fullscreen")}">${PLAYER_ICONS.fullscreen}</button>
-      </div>
-    </div><div class="toast" aria-live="polite"></div>`;
+  const create = (tag: string, className = "") => {
+    const element = document.createElement(tag);
+    if (className) element.className = className;
+    return element;
+  };
+  const iconButton = (className: string, label: string, icon: string) => {
+    const button = create("button", className) as HTMLButtonElement;
+    button.type = "button";
+    button.setAttribute("aria-label", label);
+    setPlayerIcon(button, icon);
+    return button;
+  };
+  const styleElement = create("style");
+  styleElement.textContent = CONTROL_STYLES;
+  const bigPlayElement = iconButton("big-play", t("play"), PLAYER_ICONS.play);
+  const controlsElement = create("div", "controls");
+  controlsElement.setAttribute("role", "group");
+  controlsElement.setAttribute("aria-label", t("playerControls"));
+  const progressElement = create("div", "progress");
+  for (const [name, value] of Object.entries({ role: "slider", tabindex: "0", "aria-label": t("progress"), "aria-valuemin": "0", "aria-valuemax": "1000", "aria-valuenow": "0" })) progressElement.setAttribute(name, value);
+  const progressTrack = create("div", "progress-track");
+  const bufferedElement = create("div", "buffered");
+  const markersElement = create("div", "markers");
+  markersElement.setAttribute("aria-hidden", "true");
+  const playedElement = create("div", "played");
+  progressTrack.append(bufferedElement, markersElement, playedElement);
+  const knobElement = create("div", "knob");
+  const tooltipElement = create("div", "progress-tooltip");
+  const chapterElement = create("span", "chapter");
+  const hoverTimeElement = create("span", "hover-time");
+  hoverTimeElement.textContent = "0:00";
+  tooltipElement.append(chapterElement, hoverTimeElement);
+  progressElement.append(progressTrack, knobElement, tooltipElement);
+  const buttonsElement = create("div", "buttons");
+  const playElement = iconButton("play", t("playPause"), PLAYER_ICONS.play);
+  const volumeWrap = create("div", "volume-wrap");
+  const muteElement = iconButton("mute", t("mute"), PLAYER_ICONS.volume);
+  const volumeElement = create("input", "volume") as HTMLInputElement;
+  Object.assign(volumeElement, { type: "range", min: "0", max: "1", step: "0.05", value: "1" });
+  volumeElement.setAttribute("aria-label", t("volume"));
+  volumeWrap.append(muteElement, volumeElement);
+  const timeElement = create("span", "time");
+  timeElement.textContent = "0:00 / 0:00";
+  const spacerElement = create("span", "spacer");
+  const captionMenuWrapElement = create("div", "caption-menu-wrap");
+  const captionsElement = iconButton("captions", t("captions"), PLAYER_ICONS.captions);
+  captionsElement.title = t("captionsShortcut");
+  captionsElement.setAttribute("aria-haspopup", "dialog");
+  captionsElement.setAttribute("aria-expanded", "false");
+  const captionMenuElement = create("div", "caption-menu");
+  captionMenuElement.setAttribute("role", "dialog");
+  captionMenuElement.setAttribute("aria-label", t("captions"));
+  captionMenuElement.hidden = true;
+  const captionToggleElement = create("div", "caption-toggle");
+  const captionToggleLabel = create("span");
+  captionToggleLabel.textContent = t("captions");
+  const captionSwitchElement = create("button", "caption-switch") as HTMLButtonElement;
+  captionSwitchElement.type = "button";
+  captionSwitchElement.setAttribute("role", "switch");
+  captionSwitchElement.setAttribute("aria-checked", "false");
+  captionSwitchElement.setAttribute("aria-label", t("captions"));
+  captionSwitchElement.append(create("span"));
+  captionToggleElement.append(captionToggleLabel, captionSwitchElement);
+  const captionListElement = create("div", "caption-list");
+  captionListElement.setAttribute("role", "listbox");
+  captionListElement.setAttribute("aria-label", t("captions"));
+  captionMenuElement.append(captionToggleElement, captionListElement);
+  captionMenuWrapElement.append(captionsElement, captionMenuElement);
+  const pipElement = iconButton("pip", t("pictureInPicture"), PLAYER_ICONS.pip);
+  const fullscreenElement = iconButton("fullscreen", t("fullscreen"), PLAYER_ICONS.fullscreen);
+  buttonsElement.append(playElement, volumeWrap, timeElement, spacerElement, captionMenuWrapElement, pipElement, fullscreenElement);
+  controlsElement.append(progressElement, buttonsElement);
+  const toastElement = create("div", "toast");
+  toastElement.setAttribute("aria-live", "polite");
+  shadow.append(styleElement, bigPlayElement, controlsElement, toastElement);
   document.documentElement.append(host);
   const q = <T extends Element>(selector: string) => shadow.querySelector<T>(selector)!;
   const play = q<HTMLButtonElement>(".play");
@@ -484,12 +544,12 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     for (let index = 0; index < video.buffered.length; index++) if (video.buffered.start(index) <= video.currentTime + .2) bufferedEnd = Math.max(bufferedEnd, video.buffered.end(index));
     buffered.style.width = `${duration ? Math.min(100, bufferedEnd / duration * 100) : 0}%`;
     time.textContent = `${formatClock(video.currentTime).replace(/-/g, ":")} / ${formatClock(duration).replace(/-/g, ":")}`;
-    play.innerHTML = video.paused ? PLAYER_ICONS.play : PLAYER_ICONS.pause;
+    setPlayerIcon(play, video.paused ? PLAYER_ICONS.play : PLAYER_ICONS.pause);
     bigPlay.hidden = !video.paused || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA;
-    mute.innerHTML = video.muted || video.volume === 0 ? PLAYER_ICONS.muted : PLAYER_ICONS.volume;
+    setPlayerIcon(mute, video.muted || video.volume === 0 ? PLAYER_ICONS.muted : PLAYER_ICONS.volume);
     volume.value = String(video.muted ? 0 : video.volume);
     syncCaptionControls();
-    fullscreen.innerHTML = document.fullscreenElement ? PLAYER_ICONS.minimize : PLAYER_ICONS.fullscreen;
+    setPlayerIcon(fullscreen, document.fullscreenElement ? PLAYER_ICONS.minimize : PLAYER_ICONS.fullscreen);
     const playback = playbackSettings();
     if (remoteConfig?.sponsorBlock.enabled) {
       const segment = playback.sponsorBlockSegments.find((item) => item.actionType === "skip" && video.currentTime >= item.segment[0] && video.currentTime < item.segment[1] - .25);

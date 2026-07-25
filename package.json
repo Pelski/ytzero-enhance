@@ -1,7 +1,7 @@
 {
   "name": "ytzero-enhance",
   "version": "0.1.0",
-  "description": "Browser extension that connects YouTube links and embedded players with a self-hosted YT Zero instance.",
+  "description": "Make YT Zero better with smoother playback, smart link handling, and more control over every video.",
   "private": true,
   "type": "module",
   "license": "AGPL-3.0-only",
