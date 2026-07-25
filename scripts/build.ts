@@ -108,6 +108,8 @@ if (args.has("--check")) {
   for (const target of targets) {
     const manifest = JSON.parse(await readFile(join(root, "dist", target, "manifest.json"), "utf8"));
     if (manifest.manifest_version !== 3 || manifest.name !== "__MSG_extensionName__" || manifest.default_locale !== "en" || manifest.version !== version) throw new Error(`Niepoprawny manifest ${target}`);
+    if (manifest.permissions?.includes("tabs")) throw new Error(`Manifest ${target} zawiera zbędne uprawnienie tabs`);
+    if (manifest.content_scripts?.some((script: any) => script.matches?.includes("<all_urls>"))) throw new Error(`Manifest ${target} statycznie wstrzykuje skrypt na wszystkie strony`);
     if (target === "firefox" && manifest.browser_specific_settings?.gecko?.data_collection_permissions?.required?.[0] !== "none") {
       throw new Error("Manifest Firefoxa musi deklarować brak zbierania danych dla AMO");
     }

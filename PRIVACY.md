@@ -32,7 +32,6 @@ It does not send usage information, diagnostics, browsing history, player activi
 
 - `storage` saves extension preferences and connected instances.
 - `webNavigation` recognizes supported video links selected by the user.
-- `tabs` redirects the current tab and coordinates an explicitly requested frame capture.
 - `activeTab` performs a user-requested action in the active tab.
 - Required player-host access provides enhanced controls inside supported embedded players.
 - Optional HTTP/HTTPS host access is requested only for an instance explicitly connected by the user. It is used to read the safe configuration exposed by that instance and locate its embedded player.
@@ -77,7 +76,6 @@ Nie wysyła deweloperowi ani usługom analitycznym informacji o użyciu, diagnos
 
 - `storage` zapisuje ustawienia rozszerzenia i połączone instancje.
 - `webNavigation` rozpoznaje obsługiwane linki do filmów wybrane przez użytkownika.
-- `tabs` przekierowuje bieżącą kartę i koordynuje wyraźnie zażądany zrzut klatki.
 - `activeTab` wykonuje działanie zlecone przez użytkownika na aktywnej karcie.
 - Wymagany dostęp do hostów odtwarzacza zapewnia ulepszone kontrolki w obsługiwanych osadzonych playerach.
 - Opcjonalny dostęp do hostów HTTP/HTTPS jest wymagany dopiero dla instancji wyraźnie połączonej przez użytkownika. Służy do odczytu bezpiecznej konfiguracji udostępnionej przez tę instancję i odnalezienia jej osadzonego playera.

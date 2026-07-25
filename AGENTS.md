@@ -32,6 +32,8 @@ The sibling `../ytzero` repository owns the application-side bridge. Its relevan
 - `inferInstanceUrl()` must retain support for an installation prefix such as `/apps/ytzero`, including when a reverse proxy exposes the app below a path.
 - Do not trust configuration solely because an element has the expected ID. Always validate format, version, bridge version, events, and field shapes through the contract helpers.
 - Pairing an instance requests optional host access only after the user initiates the action. Keep host permissions and origin matching as narrow as the browser APIs allow.
+- Static content scripts run only on the required embedded-player hosts. Register `content.js` dynamically for the exact origins of paired instances and unregister it when the last instance on an origin is removed; never restore a static `<all_urls>` match.
+- Do not add the `tabs` permission: `activeTab`, paired-origin access and the fixed player-host permissions cover the current tab operations.
 - Multiple instances are supported. Each page uses its matching instance/profile; only supported video-link redirects use the default instance.
 
 ## Embedded player interaction decisions

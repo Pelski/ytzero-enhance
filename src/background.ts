@@ -1,6 +1,7 @@
 import { DEFAULT_SETTINGS, isRedirectableYouTubeUrl, localWatchUrl, normalizeSettings, screenshotFilename } from "./core";
 import { EnhanceConfiguration, PLAYBACK_QUALITY_ORDER, validateEnhanceConfiguration, validateEnhanceContext, validatePlayerCommand, validatePlayerEvent, validateScreenshotRequest } from "./contract";
 import { defaultPairedInstance, PairedInstance, PairedInstances, pairedInstanceForPage, PAIRED_INSTANCES_KEY } from "./instances";
+import { PAIRED_INSTANCE_CONTENT_SCRIPT_ID, pairedInstanceContentScriptMatches } from "./content-registration";
 import { t } from "./i18n";
 import { callApi, ext } from "./webext";
 
@@ -16,6 +17,37 @@ async function pairedInstances(): Promise<PairedInstances> {
 
 async function savePairedInstances(instances: PairedInstances) {
   await callApi(ext.storage.local, "set", { [PAIRED_INSTANCES_KEY]: instances });
+  await queuePairedInstanceContentScriptSync(instances);
+}
+
+async function syncPairedInstanceContentScript(instances: PairedInstances) {
+  if (
+    typeof ext.scripting?.getRegisteredContentScripts !== "function"
+    || typeof ext.scripting?.registerContentScripts !== "function"
+    || typeof ext.scripting?.unregisterContentScripts !== "function"
+  ) throw new Error("Dynamic content script registration is unavailable");
+
+  const registered = await callApi<any[]>(ext.scripting, "getRegisteredContentScripts", {});
+  if (registered.some((script) => script.id === PAIRED_INSTANCE_CONTENT_SCRIPT_ID)) {
+    await callApi(ext.scripting, "unregisterContentScripts", { ids: [PAIRED_INSTANCE_CONTENT_SCRIPT_ID] });
+  }
+  const matches = (await Promise.all(pairedInstanceContentScriptMatches(instances).map(async (pattern) => (
+    await callApi<boolean>(ext.permissions, "contains", { origins: [pattern] }).catch(() => false) ? pattern : null
+  )))).filter((pattern): pattern is string => Boolean(pattern));
+  if (!matches.length) return;
+  await callApi(ext.scripting, "registerContentScripts", [{
+    id: PAIRED_INSTANCE_CONTENT_SCRIPT_ID,
+    matches,
+    js: ["content.js"],
+    runAt: "document_idle",
+    allFrames: false,
+  }]);
+}
+
+let pairedInstanceContentScriptSync = Promise.resolve();
+function queuePairedInstanceContentScriptSync(instances: PairedInstances) {
+  pairedInstanceContentScriptSync = pairedInstanceContentScriptSync.catch(() => {}).then(() => syncPairedInstanceContentScript(instances));
+  return pairedInstanceContentScriptSync;
 }
 
 async function configurationState(sender?: any) {
@@ -29,6 +61,7 @@ async function configurationState(sender?: any) {
 // Remove data from the superseded public-endpoint implementation. Paired
 // configurations below are sourced exclusively from authenticated page DOM.
 void callApi(ext.storage.local, "remove", ["ytzeRemoteConfiguration", "ytzeConfigurationDiagnostic", "ytzeConfigurationBlocked", "ytzeConfigurationFetchedAt"]).catch(() => {});
+void pairedInstances().then(queuePairedInstanceContentScriptSync).catch(() => {});
 
 async function redirect(details: any) {
   if (details.frameId !== 0 || !isRedirectableYouTubeUrl(details.url)) return;
