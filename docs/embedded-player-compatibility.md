@@ -1,45 +1,45 @@
-# Embedded player — audyt kompatybilności
+# Embedded player compatibility audit
 
-Stan issue trackera sprawdzony 25 lipca 2026. Przejrzano wszystkie publiczne zgłoszenia repozytorium YT Zero; poniżej są te, które dotyczą różnicy między zewnętrznym iframe a lokalnym playerem albo bezpośrednio wpływają na rozszerzenie.
+Issue tracker status reviewed on July 25, 2026. All public issues in the YT Zero repository were reviewed; the table below lists those related to differences between the external iframe and the local player or those that directly affect the extension.
 
-| Issue | Problem iframe względem lokalnego | Obsługa w YT Zero Enhance |
+| Issue | Iframe limitation compared with the local player | Handling in YT Zero Enhance |
 |---|---|---|
-| [#68](https://github.com/Pelski/ytzero/issues/68) | Brak `,` / `.` do przechodzenia po klatkach | Dodane; odstęp jest mierzony przez `requestVideoFrameCallback`, z konfigurowanym FPS jako fallback. VFR pozostaje przybliżeniem. |
-| [#67](https://github.com/Pelski/ytzero/issues/67) | Brak surowego zrzutu klatki iframe | Dodany zrzut wyrenderowanej klatki przez `captureVisibleTab` i crop. Surowa rozdzielczość źródła nadal tylko w lokalnym `<video>`. |
-| [#52](https://github.com/Pelski/ytzero/issues/52) | Kursor nie znika w fullscreen iframe | Rozszerzenie chowa własny pasek i kursor po 2,6 s od ostatniego ruchu podczas odtwarzania. |
-| [#51](https://github.com/Pelski/ytzero/issues/51) | Klawiatura pozostawia natywne kontrolki na ekranie | Własne kontrolki mają niezależny timer; natywny pasek może być ukryty. |
-| [#37](https://github.com/Pelski/ytzero/issues/37) | PiP niewidoczny w menu kontekstowym iframe | Dodany bezpośredni przycisk `requestPictureInPicture`; zadziała, jeśli browser/OS zezwala. |
-| [#27](https://github.com/Pelski/ytzero/issues/27) | Aplikacja nadrzędna nie może stylować odtwarzacza cross-origin | Content script działa wewnątrz iframe i dodaje skin/pasek YT Zero. |
-| [#25](https://github.com/Pelski/ytzero/issues/25) | Skróty nie działają przed fokusem iframe | Skróty są rejestrowane w ramce od razu po wykryciu `<video>`. |
-| [#61](https://github.com/Pelski/ytzero/issues/61), [#55](https://github.com/Pelski/ytzero/issues/55) | Overlay „up next” aplikacji jest niewidoczny w natywnym fullscreen playera | Po `ended` rozszerzenie prosi stronę nadrzędną o wyjście z fullscreen. Autoplay/feed nadal realizuje YT Zero. |
-| [#38](https://github.com/Pelski/ytzero/issues/38) | LibreWolf usuwa referrer i serwis odrzuca embed | Nie naprawiamy kosztem globalnej prywatności. Whitelist/referrer w LibreWolf lub lokalny player. |
-| [#22](https://github.com/Pelski/ytzero/issues/22) | „Sign in to confirm you're not a bot” | Poza zakresem rozszerzenia; zmiana IP/VPN, zalogowana sesja źródłowa albo yt-dlp/local. |
-| [#64](https://github.com/Pelski/ytzero/issues/64) | Background playback na Androidzie | Best effort przez istniejący Media Session YT Zero; rozszerzenie nie może obejść zawieszenia iframe przez OS. |
-| [#23](https://github.com/Pelski/ytzero/issues/23) | Auto-fullscreen na iOS/Safari | Ograniczenie platformy; rozszerzenie nie tworzy user activation i nie omija polityki Apple. |
-| [#8](https://github.com/Pelski/ytzero/issues/8) | Prędkość resetowana przez odtwarzacz | Bridge przekazuje efektywną prędkość profilu/per-channel, a rozszerzenie przywraca ją po resecie playera. |
-| [#60](https://github.com/Pelski/ytzero/issues/60), [#41](https://github.com/Pelski/ytzero/issues/41) | Lokalne/shareable linki | Redirect zamienia prywatne kliknięcia na `/watch/:id`; nie tworzy publicznego, anonimowego tokenu share — to wymaga bezpiecznej funkcji serwera. |
-| [#15](https://github.com/Pelski/ytzero/issues/15) | Rozróżnialne tytuły kart | Naprawione w YT Zero; rozszerzenie używa tytułu i kanału jedynie do nazwy zrzutu. |
+| [#68](https://github.com/Pelski/ytzero/issues/68) | No `,` / `.` frame stepping | Added; intervals are measured with `requestVideoFrameCallback`, with the configured FPS as a fallback. VFR remains an approximation. |
+| [#67](https://github.com/Pelski/ytzero/issues/67) | No raw iframe frame capture | Added rendered-frame capture using `captureVisibleTab` and cropping. Raw source resolution remains available only from the local `<video>`. |
+| [#52](https://github.com/Pelski/ytzero/issues/52) | Cursor remains visible in iframe fullscreen | The extension hides its control bar and cursor after 2.6 seconds without movement during playback. |
+| [#51](https://github.com/Pelski/ytzero/issues/51) | Keyboard input leaves native controls visible | Custom controls use an independent timer; the native control bar can remain hidden. |
+| [#37](https://github.com/Pelski/ytzero/issues/37) | PiP is unavailable from the iframe context menu | A direct `requestPictureInPicture` button is provided when the browser and OS permit it. |
+| [#27](https://github.com/Pelski/ytzero/issues/27) | The parent application cannot style a cross-origin player | A content script runs inside the iframe and adds the YT Zero skin and control bar. |
+| [#25](https://github.com/Pelski/ytzero/issues/25) | Shortcuts do not work before the iframe receives focus | Shortcuts are registered inside the frame as soon as the `<video>` element is detected. |
+| [#61](https://github.com/Pelski/ytzero/issues/61), [#55](https://github.com/Pelski/ytzero/issues/55) | The application's up-next overlay is hidden by native player fullscreen | After `ended`, the extension asks the parent page to exit fullscreen. YT Zero still owns autoplay and feed behavior. |
+| [#38](https://github.com/Pelski/ytzero/issues/38) | LibreWolf removes the referrer and the service rejects the embed | Not fixed at the expense of global privacy. Allow the referrer in LibreWolf or use the local player. |
+| [#22](https://github.com/Pelski/ytzero/issues/22) | “Sign in to confirm you're not a bot” | Outside the extension's scope; possible workarounds include changing IP/VPN, using an authenticated source-site session, or using yt-dlp/local playback. |
+| [#64](https://github.com/Pelski/ytzero/issues/64) | Background playback on Android | Best effort through YT Zero's existing Media Session. The extension cannot bypass OS suspension of an iframe. |
+| [#23](https://github.com/Pelski/ytzero/issues/23) | Automatic fullscreen on iOS/Safari | Platform limitation; the extension does not create user activation or bypass Apple policy. |
+| [#8](https://github.com/Pelski/ytzero/issues/8) | Playback speed is reset by the player | The bridge supplies the effective profile or per-channel speed, and the extension restores it after a player reset. |
+| [#60](https://github.com/Pelski/ytzero/issues/60), [#41](https://github.com/Pelski/ytzero/issues/41) | Local/shareable links | Redirects turn private clicks into `/watch/:id`; they do not create public anonymous share tokens, which require a secure server-side feature. |
+| [#15](https://github.com/Pelski/ytzero/issues/15) | Browser tab titles are difficult to distinguish | Fixed in YT Zero; the extension uses the title and channel only when naming a captured frame. |
 
-## Funkcje lokalnego playera, których rozszerzenie celowo nie emuluje
+## Local-player features intentionally not emulated by the extension
 
-- bezpośredni eksport obrazu w `videoWidth × videoHeight`;
-- lokalne napisy WebVTT; rozszerzenie używa natywnych ścieżek zewnętrznego playera, ale udostępnia zgodne z lokalnym playerem menu języków oraz synchronizuje rozmiar, kolor i tło;
-- opisy rozdziałów w osobnym panelu; na osi rozszerzenie pokazuje ticki rozdziałów oraz segmenty SponsorBlock;
-- gwarantowane programowe sterowanie jakością strumienia; rozszerzenie przekazuje `vq` i ponawia wybór najwyższego poziomu do progu profilu przez wewnętrzny player, ale platforma pozostawia jakość algorytmowi adaptacyjnemu i może zmienić ten mechanizm;
-- działanie offline oraz seek po lokalnym pliku;
-- pełna kontrola Media Session i odtwarzania w tle;
-- brak reklam, ekranów końcowych i linków narzuconych przez platformę.
+- direct image export at `videoWidth × videoHeight`;
+- local WebVTT subtitles; the extension uses native tracks from the external player, while providing a local-player-style language menu and synchronized size, color, and background settings;
+- chapter descriptions in a separate panel; the extension shows chapter ticks and SponsorBlock segments on the timeline;
+- guaranteed programmatic stream-quality control; the extension supplies `vq` and retries the highest level within the profile limit through the internal player, but the platform retains its adaptive algorithm and may change this mechanism;
+- offline playback and seeking within a local file;
+- full Media Session and background-playback control;
+- removal of advertisements, end screens, and links imposed by the platform.
 
-Przy aktywnym zastępowaniu `controls=0` i `disablekb=1` są tylko dodatkową wskazówką w URL — rozszerzenie nie polega na ich respektowaniu. CSS wykonywany wewnątrz iframe ukrywa wszystkie bezpośrednie warstwy `.html5-video-player` poza kontenerem obrazu, napisami, loaderem oraz oznaczeniami i przyciskami reklamowymi. Osobne selektory wycinają portale klasycznego UI i nowego wariantu (`ytwPlayer…`, `player-controls-*`, menu ustawień i rekomendacje fullscreen), również gdy są montowane poza zwykłym drzewem warstw playera.
+When control replacement is active, `controls=0` and `disablekb=1` are only additional URL hints; the extension does not depend on the player honoring them. CSS running inside the iframe hides direct `.html5-video-player` layers except the video container, captions, loading indicator, and advertisement labels and controls. Separate selectors cover both classic UI portals and newer variants (`ytwPlayer…`, `player-controls-*`, settings menus, and fullscreen recommendations), including elements mounted outside the usual player layer tree.
 
-## Dwukierunkowy bridge playera
+## Bidirectional player bridge
 
-Komunikacja przebiega przez dwa eventy DOM na `document` strony głównej sparowanej instancji. `detail` zawsze jest stringiem JSON, ponieważ aplikacja i content script rozszerzenia działają w odseparowanych światach JavaScript.
+Communication uses two DOM events on the paired instance's top-level `document`. The `detail` value is always a JSON string because the application and extension content script run in isolated JavaScript worlds.
 
-- iframe → aplikacja: `ytzero:enhance:player-event`;
-- aplikacja → iframe: `ytzero:enhance:player-command`.
+- iframe → application: `ytzero:enhance:player-event`;
+- application → iframe: `ytzero:enhance:player-command`.
 
-Eventy z playera mają wspólną kopertę:
+Player events share this envelope:
 
 ```json
 {
@@ -51,32 +51,32 @@ Eventy z playera mają wspólną kopertę:
 }
 ```
 
-Obsługiwane typy to:
+Supported event types:
 
-- `ready` — player jest gotowy; `payload.state` zawiera pierwszy snapshot;
-- `state` — snapshot po play/pause, głośności, prędkości, fullscreen/PiP, komendzie oraz maksymalnie raz na sekundę podczas odtwarzania;
-- `shortcut` — każdy skrót obsługiwany przez rozszerzenie wraz z `key`, `code`, logiczną `action`, `repeat` i modyfikatorami;
-- `captions-toggle-request` — szybkie przełączenie napisów skrótem `C`; przycisk napisów otwiera własne menu języków i steruje osadzonym playerem bezpośrednio;
-- `ended` — zakończenie filmu;
-- `command-result` — wynik komendy, powiązany przez `payload.requestId`.
+- `ready` — the player is ready; `payload.state` contains the initial snapshot;
+- `state` — a snapshot after play/pause, volume, speed, fullscreen/PiP, or a command, and at most once per second during playback;
+- `shortcut` — a handled shortcut with its `key`, `code`, logical `action`, `repeat` state, and modifiers;
+- `captions-toggle-request` — a quick caption toggle requested by `C`; the caption button opens its own language menu and controls the embedded player directly;
+- `ended` — playback ended;
+- `command-result` — a command result correlated by `payload.requestId`.
 
-Snapshot `state` zawiera: `paused`, `ended`, `currentTime`, `duration`, `volume`, `muted`, `playbackRate`, `captionSize`, `captionsEnabled`, `fullscreen` i `pictureInPicture`.
+The `state` snapshot contains `paused`, `ended`, `currentTime`, `duration`, `volume`, `muted`, `playbackRate`, `captionSize`, `captionsEnabled`, `fullscreen`, and `pictureInPicture`.
 
-Komenda aplikacji:
+Application command:
 
 ```json
 {
   "version": 1,
-  "requestId": "unikalny-identyfikator",
+  "requestId": "unique-request-id",
   "videoId": "dQw4w9WgXcQ",
   "command": "seek-by",
   "payload": { "seconds": 15 }
 }
 ```
 
-Obsługiwane komendy:
+Supported commands:
 
-| Komenda | Payload |
+| Command | Payload |
 |---|---|
 | `play`, `pause`, `toggle-play` | `{}` |
 | `seek-by`, `seek-to` | `{ "seconds": number }` |
@@ -89,21 +89,21 @@ Obsługiwane komendy:
 | `toggle-fullscreen`, `enter-fullscreen`, `exit-fullscreen` | `{}` |
 | `request-state` | `{}` |
 
-Skrót `C` zachowuje kompatybilny event `ytzero:enhance:captions-toggle-request`. Zawiera on `currentEnabled` i `requestedEnabled`; jeśli stanu nie da się odczytać, oba pola są `null`. Przycisk CC otwiera menu wzorowane na lokalnym playerze: przełącznik włącza lub wyłącza napisy, a lista pochodzi z `player.captions.availableLanguages`. Wybór ustawia natywną ścieżkę osadzonego playera, a gdy nie ma ścieżki dokładnej, korzysta z tłumaczenia dostępnej ścieżki bazowej.
+The `C` shortcut retains the compatible `ytzero:enhance:captions-toggle-request` event. It includes `currentEnabled` and `requestedEnabled`; both are `null` when the state cannot be determined. The CC button opens a local-player-style menu: its switch enables or disables captions, and the language list comes from `player.captions.availableLanguages`. Selecting a language chooses the native embedded-player track or, when no exact track exists, translates an available base track.
 
-## Scenariusze regresji
+## Regression scenarios
 
-Sprawdź co najmniej:
+Test at least:
 
-1. iframe `youtube.com/embed/:id` i `youtube-nocookie.com/embed/:id` na obcej domenie;
-2. iframe tworzony dynamicznie przez IFrame Player API w YT Zero;
-3. player w zwykłym widoku, theater i fullscreen;
-4. PNG, JPEG i WebP przy DPR 1 oraz DPR 2;
-5. film 16:9, pionowy i z letterboxem;
-6. dwa embedy na jednej stronie — zrzut aktywnego/widocznego;
-7. jakość preferowaną, napisy przez `C`, menu języków (ścieżka dokładna i tłumaczenie), zmianę ich rozmiaru oraz zwijaną głośność;
-8. nawigację `watch`, `shorts`, `live`, `youtu.be`, timestamp oraz instancję pod subpath;
-9. wyłączone przekierowania i skrót `Alt+Shift+Y`;
-10. Chrome/Edge/Brave i Firefox, także z restrykcyjną ochroną śledzenia.
-11. parowanie instancji głównej i reverse-proxy, konfigurację z DOM, zmianę profilu oraz przełączenie instancji domyślnej;
-12. screenshot request z YT Zero, synchroniczne `preventDefault()` i rezultat `saved`/`error`.
+1. `youtube.com/embed/:id` and `youtube-nocookie.com/embed/:id` iframes on another domain;
+2. an iframe created dynamically by the IFrame Player API in YT Zero;
+3. normal, theatre, and fullscreen player layouts;
+4. PNG, JPEG, and WebP at DPR 1 and DPR 2;
+5. 16:9, portrait, and letterboxed videos;
+6. two embeds on one page, capturing the active or visible player;
+7. preferred quality, captions through `C`, the language menu with exact and translated tracks, caption resizing, and collapsible volume controls;
+8. `watch`, `shorts`, `live`, and `youtu.be` navigation, timestamps, and an instance installed below a path prefix;
+9. disabled redirects and the `Alt+Shift+Y` shortcut;
+10. Chrome, Edge, Brave, and Firefox, including strict tracking protection;
+11. pairing root and reverse-proxy instances, DOM configuration, profile changes, and default-instance switching;
+12. a screenshot request from YT Zero, synchronous `preventDefault()`, and the `saved`/`error` result.

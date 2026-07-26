@@ -20,7 +20,7 @@ The sibling `../ytzero` repository owns the application-side bridge. Its relevan
 - `_locales/{en,pl,de}` — browser locale catalogs. Every user-facing key must exist in all three locales.
 - `manifests/` — per-browser Manifest V3 inputs.
 - `scripts/build.ts` — builds all browser targets, generates raster icons, syncs Safari resources, validates manifests, and creates ZIP packages.
-- `PRIVACY.md` — authoritative English and Polish privacy policy linked from the README and store listings.
+- `PRIVACY.md` — authoritative English privacy policy linked from the README and store listings.
 - `safari/YT Zero Enhance/` — checked-in containing-app/Xcode wrapper.
 - `tests/` — Bun unit tests and browser UI preview fixtures.
 

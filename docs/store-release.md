@@ -1,53 +1,53 @@
-# Publikacja w store'ach
+# Store release guide
 
-## Wspólna checklista
+## Common checklist
 
-1. Zmień wersję w `package.json` oraz wszystkich plikach `manifests/*.json`.
-2. Uruchom `bun run check` i ręczne scenariusze z `embedded-player-compatibility.md`.
-3. Sparuj testową instancję z poziomu zalogowanej strony filmu i potwierdź odczyt konfiguracji z DOM.
-4. Uruchom `bun run package`.
-5. Rozpakuj wszystkie ZIP-y i sprawdź, że w paczce nie ma źródeł, sourcemap, danych testowych ani sekretów.
-6. Przygotuj screenshoty ustawień oraz playera w rozmiarach wymaganych przez dany store.
-7. Podaj publiczny adres `PRIVACY.md` jako politykę prywatności.
-8. Wyjaśnij reviewerowi wymagane hosty osadzonego odtwarzacza i opcjonalny dostęp do sparowanej instancji tekstem z sekcji poniżej.
+1. Update the version in `package.json` and every `manifests/*.json` file.
+2. Run `bun run check` and the manual scenarios in `embedded-player-compatibility.md`.
+3. Pair a test instance from an authenticated video page and confirm that the extension reads the embedded DOM configuration.
+4. Run `bun run package`.
+5. Extract every ZIP and confirm that packages contain no source files, source maps, test data, or secrets.
+6. Prepare settings and player screenshots in the sizes required by each store.
+7. Use the public URL of `PRIVACY.md` as the privacy-policy URL.
+8. Explain the required embedded-player hosts and optional paired-instance access using the text below.
 
 ## GitHub Release
 
-Po zatwierdzeniu zmian utwórz i wypchnij tag zgodny z wersją w `package.json`:
+After approving the changes, create and push a tag matching the version in `package.json`:
 
 ```bash
 git tag v0.1.0
 git push origin v0.1.0
 ```
 
-Workflow `.github/workflows/release.yml` uruchomi pełny check, zbuduje wszystkie warianty i dołączy archiwa z `artifacts/` do GitHub Release. Jeśli Release dla danego taga już istnieje, jego opis zostanie zachowany, a archiwa zastąpione aktualnie zbudowanymi plikami.
+The `.github/workflows/release.yml` workflow runs the complete check, builds every target, and attaches the archives from `artifacts/` to the GitHub Release. If a release already exists for the tag, its description is preserved and its archives are replaced with the current build.
 
 ## Chrome Web Store / Edge Add-ons
 
-Wyślij `ytzero-enhance-chromium-<version>.zip`. W deklaracji single purpose użyj: „Redirect supported video links to a user-configured self-hosted YT Zero instance and enhance embedded player controls.”
+Upload `ytzero-enhance-chromium-<version>.zip`. Use this single-purpose declaration: “Redirect supported video links to a user-configured self-hosted YT Zero instance and enhance embedded player controls.”
 
-Uzasadnienie host permission: „The extension needs access to supported embed origins to enhance their controls. Access to HTTP/HTTPS pages is optional and requested only when the user pairs an authenticated self-hosted YT Zero page. It reads the safe configuration embedded in that page and locates the iframe for an explicitly requested screenshot. Data is processed locally and never transmitted.”
+Host-permission justification: “The extension needs access to supported embed origins to enhance their controls. Access to HTTP/HTTPS pages is optional and requested only when the user pairs an authenticated self-hosted YT Zero page. It reads the safe configuration embedded in that page and locates the iframe for an explicitly requested screenshot. Data is processed locally and never transmitted.”
 
-Nie deklaruj obchodzenia reklam, geoblokad ani logowania. Zrzuty opisuj jako capture of the rendered embedded video, nie source-frame extraction.
+Do not claim advertisement, geoblocking, or authentication bypass. Describe screenshots as capture of the rendered embedded video, not source-frame extraction.
 
 ## Firefox Add-ons (AMO)
 
-Wyślij `ytzero-enhance-firefox-<version>.zip`. AMO może poprosić również o źródła do reprodukcji builda; wtedy dołącz repozytorium bez `dist/` i instrukcję `bun run package`. Gecko ID jest stałe: `ytzero-enhance@pelski.dev` — zmień je przed pierwszą publikacją, jeżeli domena/identyfikator ma być inny, a później już go nie zmieniaj.
+Upload `ytzero-enhance-firefox-<version>.zip`. AMO may also request sources for a reproducible build; provide the repository without `dist/` and include the `bun run package` instruction. The Gecko ID is fixed at `ytzero-enhance@pelski.dev`. Change it before the first publication if a different domain or identifier is required, then keep it stable.
 
-## Safari macOS oraz iOS/iPadOS
+## Safari on macOS and iOS/iPadOS
 
-1. Użyj projektu `safari/YT Zero Enhance/YT Zero Enhance.xcodeproj`. `bun run safari:project` służy do odtworzenia wrappera od zera i nadpisuje jego konfigurację; zwykły `bun run build` aktualizuje zasoby bez ruszania Team/signingu.
-2. Otwórz projekt i ustaw Apple Developer Team, podpisywanie, App Groups (jeżeli Xcode ich zażąda) oraz finalne bundle identifiers.
-3. Zbuduj oba schematy, przetestuj macOS oraz fizyczny iPhone/iPad.
-4. Przygotuj listing i politykę prywatności w App Store Connect.
-5. Wykonaj Archive osobno dla właściwego destination i prześlij build przez Organizer.
+1. Use `safari/YT Zero Enhance/YT Zero Enhance.xcodeproj`. `bun run safari:project` recreates the wrapper from scratch and overwrites its configuration; a normal `bun run build` updates resources without changing Team or signing settings.
+2. Open the project and configure the Apple Developer Team, signing, App Groups if requested by Xcode, and final bundle identifiers.
+3. Build both schemes and test on macOS and a physical iPhone or iPad.
+4. Prepare the listing and privacy policy in App Store Connect.
+5. Create an archive separately for each required destination and upload the build through Organizer.
 
-Safari 17+ wymaga jawnej zgody użytkownika na dostęp do witryn. Na iOS zgoda jest zarządzana w ustawieniach Safari oraz w menu rozszerzeń. Zrzut embedded playera pozostaje funkcją best effort: jeśli iOS nie udostępni przechwycenia widocznej karty albo zabezpieczona warstwa wideo zwróci czerń, jedyną pewną ścieżką jest lokalny player YT Zero.
+Safari 17+ requires explicit user approval for website access. On iOS, access is managed in Safari settings and the extensions menu. Embedded-player capture remains best effort: if iOS does not expose visible-tab capture or a protected video layer produces a black image, the local YT Zero player is the only reliable path.
 
-## Do uzupełnienia przez właściciela przed pierwszym wydaniem
+## Owner tasks before the first release
 
-- finalna licencja repozytorium;
-- publiczny URL polityki prywatności i adres kontaktowy;
-- nazwa wydawcy oraz grafiki promocyjne;
-- test na fizycznym Androidzie/Firefox Android oraz iPhonie/iPadzie, jeśli mobilne platformy mają być oficjalnie wspierane;
-- podpisanie dodatku Firefox i weryfikacja komunikatów store dotyczących opcjonalnych host permissions.
+- confirm the final repository license;
+- provide a public privacy-policy URL and contact address;
+- provide the publisher name and promotional artwork;
+- test on a physical Android device with Firefox and on an iPhone or iPad if mobile platforms will be officially supported;
+- sign the Firefox extension and review store warnings related to optional host permissions.
