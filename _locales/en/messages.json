@@ -93,6 +93,7 @@
   "canvasUnavailable": { "message": "Canvas unavailable" },
   "imageEncodingFailed": { "message": "Image encoding failed" },
   "embeddedSettingsReadFailed": { "message": "Could not read the settings embedded on the YT Zero page." },
+  "configurationPayloadTooLarge": { "message": "The embedded YT Zero configuration is too large." },
   "unknownConfigurationFormat": { "message": "The instance returned an unknown YT Zero Enhance configuration format." },
   "invalidConfigurationVersion": { "message": "The instance returned an invalid configuration version." },
   "newerExtensionRequired": { "message": "This configuration requires a newer extension version." },

@@ -93,6 +93,7 @@
   "canvasUnavailable": { "message": "Canvas niedostępny" },
   "imageEncodingFailed": { "message": "Kodowanie obrazu nie powiodło się" },
   "embeddedSettingsReadFailed": { "message": "Nie udało się odczytać ustawień osadzonych na stronie YT Zero." },
+  "configurationPayloadTooLarge": { "message": "Osadzona konfiguracja YT Zero jest zbyt duża." },
   "unknownConfigurationFormat": { "message": "Instancja zwróciła nieznany format konfiguracji YT Zero Enhance." },
   "invalidConfigurationVersion": { "message": "Instancja zwróciła nieprawidłową wersję konfiguracji." },
   "newerExtensionRequired": { "message": "Ta konfiguracja wymaga nowszej wersji rozszerzenia." },

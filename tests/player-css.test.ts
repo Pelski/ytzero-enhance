@@ -56,6 +56,15 @@ test("production content avoids innerHTML assignments rejected by AMO", () => {
   expect(content).toContain("button.replaceChildren");
 });
 
+test("extension teardown restores iframe parameters owned by the bridge", () => {
+  expect(content).toContain("ownedIframeParameters");
+  expect(content).toContain("restoreEmbeddedParameters()");
+  expect(content).toContain("onExtensionContextInvalidated(() => shutdown(true))");
+  expect(content).toContain("window.setInterval(extensionContextAvailable, 2_000)");
+  expect(content).toContain("url.searchParams.get(key) !== value.applied");
+  expect(content).toContain('setAttribute("data-extension-status", "inactive")');
+});
+
 test("player icons are created as SVG namespace elements", () => {
   expect(content).toContain('document.createElementNS(SVG_NAMESPACE, "svg")');
   expect(content).toContain('document.createElementNS(SVG_NAMESPACE, tag)');

@@ -186,6 +186,10 @@ The tag must be `v` followed by the exact version from `package.json`. If a rele
 
 YT Zero Enhance has no analytics, advertising or external backend. Access to supported player hosts is required for its core behavior. Access to a self-hosted instance is optional and requested only after you choose its address. See the complete [privacy policy](PRIVACY.md).
 
+## Protocol and trust boundary
+
+The page bridge uses versioned, validated JSON-string `CustomEvent` details on the paired YT Zero document; privileged routing between the top page and embedded player stays inside browser extension messaging. See the [application integration contract](https://github.com/Pelski/ytzero/blob/main/docs/browser-extension-integration.md) for message examples, versioning and trust-boundary rules, and the [embedded-player compatibility notes](docs/embedded-player-compatibility.md) for browser limitations and ownership decisions.
+
 ## Development
 
 ```text

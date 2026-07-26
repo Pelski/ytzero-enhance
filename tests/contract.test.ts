@@ -10,6 +10,9 @@ import {
   highestQualityAtOrBelow,
   installReadyBridge,
   isEditableShortcutTarget,
+  MAX_COMMAND_DETAIL_LENGTH,
+  MAX_CONFIGURATION_DETAIL_LENGTH,
+  parseBridgeDetail,
   playerPresentationState,
   validatePlayerCommand,
   validatePlayerEvent,
@@ -93,6 +96,12 @@ describe("embedded DOM configuration and multiple instances", () => {
     expect(inferInstanceUrl("file:///Applications/YTZero/index.html")).toBeNull();
   });
 
+  test("rejects oversized configuration text before JSON parsing", () => {
+    const result = parseEmbeddedConfigurationText("{".repeat(MAX_CONFIGURATION_DETAIL_LENGTH + 1));
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.diagnostic).toBeTruthy();
+  });
+
   test("selects the matching instance and keeps one default", () => {
     const parsed = validateEnhanceConfiguration(validConfiguration());
     if (!parsed.ok) throw new Error("fixture");
@@ -145,6 +154,11 @@ test("validates bidirectional player commands and events", () => {
   expect(validatePlayerCommand({ version: 1, requestId: "", videoId: "dQw4w9WgXcQ", command: "play" })).toBeNull();
   expect(validatePlayerEvent({ version: 1, videoId: "dQw4w9WgXcQ", type: "shortcut", timestamp: 1, payload: { key: "k" } })?.type).toBe("shortcut");
   expect(validatePlayerEvent({ version: 1, videoId: "bad", type: "state", payload: {} })).toBeNull();
+});
+
+test("rejects oversized bridge details before JSON parsing", () => {
+  const detail = JSON.stringify({ version: 1, payload: "x".repeat(MAX_COMMAND_DETAIL_LENGTH) });
+  expect(parseBridgeDetail({ detail }, MAX_COMMAND_DETAIL_LENGTH)).toBeNull();
 });
 
 test("screenshot ownership is synchronous, cancelable and origin-bound", () => {

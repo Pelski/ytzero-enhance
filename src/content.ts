@@ -1,8 +1,8 @@
 import { containedMediaRect, DEFAULT_SETTINGS, formatClock, normalizeSettings, youtubeVideoId } from "./core";
-import { BridgeScreenshotRequest, claimScreenshotRequest, configuredPageMatches, embeddedPlayerParameters, EnhanceConfiguration, EnhanceContext, EnhancePlayerCommand, ENHANCE_BRIDGE_EVENTS, ENHANCE_PLAYER_EVENTS, frameStepSeconds, highestQualityAtOrBelow, isEditableShortcutTarget, parseBridgeDetail, playerPresentationState, validateEnhanceContext, validatePlayerCommand } from "./contract";
+import { BridgeScreenshotRequest, claimScreenshotRequest, configuredPageMatches, embeddedPlayerParameters, EnhanceConfiguration, EnhanceContext, EnhancePlayerCommand, ENHANCE_BRIDGE_EVENTS, ENHANCE_PLAYER_EVENTS, frameStepSeconds, highestQualityAtOrBelow, isEditableShortcutTarget, MAX_COMMAND_DETAIL_LENGTH, MAX_CONTEXT_DETAIL_LENGTH, parseBridgeDetail, playerPresentationState, validateEnhanceContext, validatePlayerCommand } from "./contract";
 import { EMBEDDED_CONFIGURATION_ID, PAIRED_INSTANCES_KEY, parseEmbeddedConfigurationText } from "./instances";
 import { t } from "./i18n";
-import { addApiListener, callApi, ext, onExtensionContextInvalidated } from "./webext";
+import { addApiListener, callApi, ext, extensionContextAvailable, onExtensionContextInvalidated } from "./webext";
 
 let config = normalizeSettings(DEFAULT_SETTINGS);
 let remoteConfig: EnhanceConfiguration | null = null;
@@ -14,6 +14,8 @@ let configurationObserver: MutationObserver | null = null;
 let extensionStatusObserver: MutationObserver | null = null;
 let activeInstanceUrl = "";
 let lastEmbeddedConfigurationText = "";
+type OwnedIframeParameter = { original: string | null; applied: string };
+const ownedIframeParameters = new Map<HTMLIFrameElement, Map<string, OwnedIframeParameter>>();
 
 const SVG_NAMESPACE = "http://www.w3.org/2000/svg";
 type PlayerIconShape = ["path" | "rect", Record<string, string>];
@@ -74,11 +76,15 @@ async function reloadConfigurationState() {
 }
 
 function restart() {
-  shutdown();
+  shutdown(!pageBridgeShouldBeActive());
   boot();
 }
 
-function shutdown() {
+function pageBridgeShouldBeActive() {
+  return window.top === window && Boolean(config.enhancePlayer && remoteConfig?.enabled && activeInstanceUrl && configuredPageMatches(location.href, activeInstanceUrl));
+}
+
+function shutdown(restoreEmbeds = false) {
   playerController?.destroy();
   playerController = null;
   bridgeCleanup?.();
@@ -90,9 +96,13 @@ function shutdown() {
   extensionStatusObserver?.disconnect();
   extensionStatusObserver = null;
   bridgeContext = null;
+  if (restoreEmbeds) {
+    restoreEmbeddedParameters();
+    document.getElementById("ytzero-enhance-extension-status")?.setAttribute("data-extension-status", "inactive");
+  }
 }
 
-onExtensionContextInvalidated(shutdown);
+onExtensionContextInvalidated(() => shutdown(true));
 
 function boot() {
   if (window.top === window) {
@@ -151,6 +161,7 @@ function watchEmbeddedConfiguration() {
 function bootPageBridge() {
   if (!config.enhancePlayer || !remoteConfig?.enabled || !activeInstanceUrl || !configuredPageMatches(location.href, activeInstanceUrl)) return;
   const configureEmbeds = (context?: EnhanceContext) => {
+    for (const iframe of ownedIframeParameters.keys()) if (!iframe.isConnected) ownedIframeParameters.delete(iframe);
     for (const iframe of document.querySelectorAll<HTMLIFrameElement>('iframe[src*="youtube.com/embed/"], iframe[src*="youtube-nocookie.com/embed/"]')) {
       try {
         if (context && youtubeVideoId(iframe.src) !== context.video.id) continue;
@@ -161,13 +172,23 @@ function bootPageBridge() {
         desired.cc_load_policy = captions.enabledByDefault ? "1" : "0";
         if (captions.language) desired.cc_lang_pref = captions.language;
         let changed = false;
-        for (const [key, value] of Object.entries(desired)) if (url.searchParams.get(key) !== value) { url.searchParams.set(key, value); changed = true; }
+        const owned = ownedIframeParameters.get(iframe) ?? new Map<string, OwnedIframeParameter>();
+        for (const [key, value] of Object.entries(desired)) {
+          const current = url.searchParams.get(key);
+          const previous = owned.get(key);
+          const original = previous && current === previous.applied ? previous.original : current;
+          if (current === value) continue;
+          owned.set(key, { original, applied: value });
+          url.searchParams.set(key, value);
+          changed = true;
+        }
+        if (owned.size) ownedIframeParameters.set(iframe, owned);
         if (changed) iframe.src = url.toString();
       } catch {}
     }
   };
   const onContext = (event: Event) => {
-    const context = validateEnhanceContext(parseBridgeDetail(event as CustomEvent));
+    const context = validateEnhanceContext(parseBridgeDetail(event as CustomEvent, MAX_CONTEXT_DETAIL_LENGTH));
     if (context) {
       configureEmbeds(context);
       void callApi(ext.runtime, "sendMessage", { type: "ytze-bridge-context", context }).catch(() => {});
@@ -181,7 +202,7 @@ function bootPageBridge() {
       .catch((error) => dispatchScreenshotResult("error", error.message));
   };
   const onPlayerCommand = (event: Event) => {
-    const command = validatePlayerCommand(parseBridgeDetail(event as CustomEvent));
+    const command = validatePlayerCommand(parseBridgeDetail(event as CustomEvent, MAX_COMMAND_DETAIL_LENGTH));
     if (!command) return;
     event.preventDefault();
     void callApi<any>(ext.runtime, "sendMessage", { type: "ytze-player-command", command })
@@ -200,13 +221,33 @@ function bootPageBridge() {
   configureEmbeds();
   const observer = new MutationObserver(() => configureEmbeds());
   observer.observe(document.documentElement, { childList: true, subtree: true });
+  const contextInterval = window.setInterval(extensionContextAvailable, 2_000);
   document.dispatchEvent(new Event(ENHANCE_BRIDGE_EVENTS.ready));
   bridgeCleanup = () => {
     document.removeEventListener(ENHANCE_BRIDGE_EVENTS.context, onContext);
     document.removeEventListener(ENHANCE_BRIDGE_EVENTS.screenshotRequest, onScreenshot);
     document.removeEventListener(ENHANCE_PLAYER_EVENTS.command, onPlayerCommand);
     observer.disconnect();
+    clearInterval(contextInterval);
   };
+}
+
+function restoreEmbeddedParameters() {
+  for (const [iframe, owned] of ownedIframeParameters) {
+    if (!iframe.isConnected) continue;
+    try {
+      const url = new URL(iframe.src);
+      let changed = false;
+      for (const [key, value] of owned) {
+        if (url.searchParams.get(key) !== value.applied) continue;
+        if (value.original == null) url.searchParams.delete(key);
+        else url.searchParams.set(key, value.original);
+        changed = true;
+      }
+      if (changed) iframe.src = url.toString();
+    } catch {}
+  }
+  ownedIframeParameters.clear();
 }
 
 function dispatchPlayerEvent(detail: Record<string, unknown>) {

@@ -22,8 +22,14 @@ export function onExtensionContextInvalidated(listener: () => void) {
 }
 
 export function extensionContextAvailable() {
-  try { return Boolean(ext?.runtime?.id); }
-  catch { return false; }
+  try {
+    const available = Boolean(ext?.runtime?.id);
+    if (!available) markContextInvalidated();
+    return available;
+  } catch {
+    markContextInvalidated();
+    return false;
+  }
 }
 
 export function callApi<T>(owner: any, method: string, ...args: any[]): Promise<T> {

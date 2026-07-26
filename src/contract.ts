@@ -2,6 +2,11 @@ export const ENHANCE_CONFIGURATION_FORMAT = "ytzero.enhance-configuration";
 export const ENHANCE_CONFIGURATION_VERSION = 1;
 export const ENHANCE_BRIDGE_VERSION = 1;
 
+export const MAX_CONFIGURATION_DETAIL_LENGTH = 256_000;
+export const MAX_CONTEXT_DETAIL_LENGTH = 256_000;
+export const MAX_SCREENSHOT_DETAIL_LENGTH = 16_384;
+export const MAX_COMMAND_DETAIL_LENGTH = 8_192;
+
 export const ENHANCE_BRIDGE_EVENTS = {
   ready: "ytzero:enhance:ready",
   context: "ytzero:enhance:context",
@@ -297,8 +302,8 @@ export function validateEnhanceContext(value: unknown): EnhanceContext | null {
   };
 }
 
-export function parseBridgeDetail<T = unknown>(event: { detail?: unknown }): T | null {
-  if (typeof event.detail !== "string") return null;
+export function parseBridgeDetail<T = unknown>(event: { detail?: unknown }, maxLength = MAX_CONTEXT_DETAIL_LENGTH): T | null {
+  if (typeof event.detail !== "string" || event.detail.length > maxLength) return null;
   try { return JSON.parse(event.detail) as T; } catch { return null; }
 }
 
@@ -314,7 +319,7 @@ export function validateScreenshotRequest(value: unknown): BridgeScreenshotReque
 
 export function claimScreenshotRequest(event: { detail?: unknown; preventDefault(): void }, pageUrl: string, instanceUrl: string): BridgeScreenshotRequest | null {
   if (!configuredPageMatches(pageUrl, instanceUrl)) return null;
-  const request = validateScreenshotRequest(parseBridgeDetail(event));
+  const request = validateScreenshotRequest(parseBridgeDetail(event, MAX_SCREENSHOT_DETAIL_LENGTH));
   if (!request) return null;
   event.preventDefault();
   return request;

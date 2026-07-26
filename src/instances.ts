@@ -1,4 +1,4 @@
-import { configuredPageMatches, EnhanceConfiguration, validateEnhanceConfiguration } from "./contract";
+import { configuredPageMatches, EnhanceConfiguration, MAX_CONFIGURATION_DETAIL_LENGTH, validateEnhanceConfiguration } from "./contract";
 import { t } from "./i18n";
 
 export const PAIRED_INSTANCES_KEY = "ytzePairedInstances";
@@ -17,6 +17,7 @@ export interface PairedInstance {
 export type PairedInstances = Record<string, PairedInstance>;
 
 export function parseEmbeddedConfigurationText(value: string) {
+  if (value.length > MAX_CONFIGURATION_DETAIL_LENGTH) return { ok: false as const, diagnostic: t("configurationPayloadTooLarge") };
   try { return validateEnhanceConfiguration(JSON.parse(value)); }
   catch { return { ok: false as const, diagnostic: t("embeddedSettingsReadFailed") }; }
 }
