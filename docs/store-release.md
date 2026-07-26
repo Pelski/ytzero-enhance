@@ -11,6 +11,17 @@
 7. Podaj publiczny adres `PRIVACY.md` jako politykę prywatności.
 8. Wyjaśnij reviewerowi wymagane hosty osadzonego odtwarzacza i opcjonalny dostęp do sparowanej instancji tekstem z sekcji poniżej.
 
+## GitHub Release
+
+Po zatwierdzeniu zmian utwórz i wypchnij tag zgodny z wersją w `package.json`:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+Workflow `.github/workflows/release.yml` uruchomi pełny check, zbuduje wszystkie warianty i dołączy archiwa z `artifacts/` do GitHub Release. Jeśli Release dla danego taga już istnieje, jego opis zostanie zachowany, a archiwa zastąpione aktualnie zbudowanymi plikami.
+
 ## Chrome Web Store / Edge Add-ons
 
 Wyślij `ytzero-enhance-chromium-<version>.zip`. W deklaracji single purpose użyj: „Redirect supported video links to a user-configured self-hosted YT Zero instance and enhance embedded player controls.”

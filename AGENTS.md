@@ -68,6 +68,8 @@ Do not hand-edit or commit generated output:
 - `dist/`
 - `artifacts/`
 - `static/icons/icon-*.png`
+
+GitHub releases are built by `.github/workflows/release.yml` after pushing a `vX.Y.Z` tag. The tag must exactly match `package.json`; the workflow runs checks, packages all browser targets and uploads the generated archives as release assets.
 - `safari/YT Zero Enhance/Shared (Extension)/Resources/`
 - generated Safari app icon PNGs
 

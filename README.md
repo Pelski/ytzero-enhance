@@ -173,6 +173,15 @@ bun run package
 
 This creates versioned archives in `artifacts/` for Chromium, Firefox and Safari. Keep the version in `package.json` and all three files in `manifests/` identical. Before publishing, follow [the store release checklist](docs/store-release.md), [privacy policy](PRIVACY.md) and [the compatibility matrix](docs/embedded-player-compatibility.md).
 
+Pushing a version tag runs the release workflow, builds all browser targets and attaches their archives to a GitHub Release:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The tag must be `v` followed by the exact version from `package.json`. If a release for that tag already exists, the workflow replaces its browser archives while preserving the release description.
+
 ## Privacy and permissions
 
 YT Zero Enhance has no analytics, advertising or external backend. Access to supported player hosts is required for its core behavior. Access to a self-hosted instance is optional and requested only after you choose its address. See the complete [privacy policy](PRIVACY.md).
