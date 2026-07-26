@@ -47,8 +47,7 @@ test("caption control opens a language menu and applies the selection in YouTube
   expect(content).toContain('type: "ytze-set-youtube-captions"');
   expect(content).toContain("setCaptionMenuOpen(!captionMenuOpen)");
   expect(background).toContain('world: "MAIN"');
-  expect(background).toContain('getOption?.("captions", "tracklist")');
-  expect(background).toContain('translationLanguage: { languageCode');
+  expect(background).toContain("operateYouTubeCaptions");
 });
 
 test("production content avoids innerHTML assignments rejected by AMO", () => {
@@ -72,8 +71,10 @@ test("player icons are created as SVG namespace elements", () => {
 });
 
 test("caption switch tracks the result of player operations instead of hidden YouTube controls", () => {
-  expect(content).toContain("captionsEnabled = response.enabled === true");
+  expect(content).toContain("captionsEnabled = response.enabled");
   expect(content).toContain("const captionsAreEnabled = () => captionsEnabled");
   expect(content).toContain("setYouTubeCaptions(!captionsAreEnabled())");
-  expect(content).not.toContain('const captionsAreEnabled = () => document.querySelector(".ytp-subtitles-button")');
+  expect(content).toContain("captionOperationQueue.then(operation, operation)");
+  expect(content).toContain("scheduleCaptionDefaults(800)");
+  expect(content).not.toContain("window.setTimeout(() => void setYouTubeCaptions(context.playback.captions.enabledByDefault");
 });

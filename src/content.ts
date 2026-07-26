@@ -377,8 +377,16 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   let subtitleSize = remoteConfig?.player.captions.style.fontSizePx ?? 19;
   let selectedCaptionLanguage = new URL(location.href).searchParams.get("cc_lang_pref") || remoteConfig?.player.captions.language || "en";
   let captionLanguageUserSelected = false;
-  let captionsEnabled = document.querySelector(".ytp-subtitles-button")?.getAttribute("aria-pressed") === "true";
+  const initialCaptionButton = document.querySelector<HTMLElement>(".ytmClosedCaptioningButtonButton, .ytp-subtitles-button");
+  const initialCaptionPressed = initialCaptionButton?.getAttribute("aria-pressed");
+  let captionsEnabled = initialCaptionPressed === "true" || (initialCaptionPressed == null && (
+    new URL(location.href).searchParams.get("cc_load_policy") === "1" || remoteConfig?.player.captions.enabledByDefault === true
+  ));
   let captionMenuOpen = false;
+  let captionDefaultTimer = 0;
+  let captionDefaultsApplied = false;
+  let captionUserOverride = false;
+  let captionOperationQueue: Promise<unknown> = Promise.resolve();
   let lastStateEmit = 0;
   const lifecycle = new AbortController();
   const signal = lifecycle.signal;
@@ -434,7 +442,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     if (!captionLanguageUserSelected) selectedCaptionLanguage = context.playback.captions.language || selectedCaptionLanguage;
     subtitleSize = context.playback.captions.style.fontSizePx;
     applyCaptionPreferences(context.playback.captions);
-    window.setTimeout(() => void setYouTubeCaptions(context.playback.captions.enabledByDefault, selectedCaptionLanguage, false), 300);
+    scheduleCaptionDefaults(300);
     renderMarkers(context);
   };
 
@@ -464,26 +472,47 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
       option.querySelector(".caption-option-status")!.textContent = selected ? "✓" : "";
     }
   };
-  const setYouTubeCaptions = async (enabled: boolean, language = selectedCaptionLanguage, userInitiated = true) => {
-    const configured = captionLanguages().find((item) => item.code === language);
-    const response = await callApi<any>(ext.runtime, "sendMessage", {
-      type: "ytze-set-youtube-captions",
-      enabled,
-      language,
-      label: configured?.label ?? language,
-    }).catch((error) => ({ ok: false, error: error.message }));
-    if (!response?.ok) {
-      say(`${t("captionsUnavailable")}: ${response?.error || t("unknown")}`);
-      return false;
+  const setYouTubeCaptions = (enabled: boolean, language = selectedCaptionLanguage, userInitiated = true) => {
+    if (userInitiated) {
+      captionUserOverride = true;
+      captionLanguageUserSelected = true;
+      clearTimeout(captionDefaultTimer);
+      captionDefaultTimer = 0;
     }
-    captionsEnabled = response.enabled === true;
-    if (enabled) {
-      selectedCaptionLanguage = language;
-      if (userInitiated) captionLanguageUserSelected = true;
-    }
-    setCaptionMenuOpen(false);
-    window.setTimeout(() => { update(); syncCaptionControls(); }, 150);
-    return true;
+    const operation = async () => {
+      const configured = captionLanguages().find((item) => item.code === language);
+      const response = await callApi<any>(ext.runtime, "sendMessage", {
+        type: "ytze-set-youtube-captions",
+        enabled,
+        language,
+        label: configured?.label ?? language,
+      }).catch((error) => ({ ok: false, error: error.message }));
+      if (!response?.ok || typeof response.enabled !== "boolean") {
+        if (typeof response?.enabled === "boolean") captionsEnabled = response.enabled;
+        if (userInitiated) say(`${t("captionsUnavailable")}: ${response?.error || t("unknown")}`);
+        syncCaptionControls();
+        return false;
+      }
+      captionsEnabled = response.enabled;
+      if (response.enabled) selectedCaptionLanguage = language;
+      setCaptionMenuOpen(false);
+      window.setTimeout(() => { update(); syncCaptionControls(); emitState("captions", true); }, 150);
+      return true;
+    };
+    const pending = captionOperationQueue.then(operation, operation);
+    captionOperationQueue = pending.then(() => undefined, () => undefined);
+    return pending;
+  };
+  const scheduleCaptionDefaults = (delay: number) => {
+    if (captionDefaultsApplied || captionUserOverride) return;
+    clearTimeout(captionDefaultTimer);
+    captionDefaultTimer = window.setTimeout(() => {
+      captionDefaultTimer = 0;
+      if (captionDefaultsApplied || captionUserOverride) return;
+      captionDefaultsApplied = true;
+      const defaults = playbackSettings().captions;
+      void setYouTubeCaptions(defaults.enabledByDefault, defaults.language || selectedCaptionLanguage, false);
+    }, delay);
   };
   const renderCaptionLanguageMenu = () => {
     const languages = captionLanguages();
@@ -526,12 +555,11 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     else safariVideo.webkitEnterFullscreen?.();
   };
   const toggleCaptions = () => {
-    const button = document.querySelector<HTMLElement>(".ytp-subtitles-button");
-    const currentEnabled = button ? button.getAttribute("aria-pressed") === "true" : null;
+    const currentEnabled = captionsAreEnabled();
     emitPlayerEvent("captions-toggle-request", {
       action: "toggle",
       currentEnabled,
-      requestedEnabled: currentEnabled == null ? null : !currentEnabled,
+      requestedEnabled: !currentEnabled,
     });
   };
   const requestCapture = async (bridgeRequest?: BridgeScreenshotRequest) => {
@@ -769,7 +797,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   video.playbackRate = desiredRate;
   applyCaptionPreferences(playbackSettings().captions);
   renderCaptionLanguageMenu();
-  window.setTimeout(() => void setYouTubeCaptions(Boolean(remoteConfig?.player.captions.enabledByDefault), selectedCaptionLanguage, false), 800);
+  scheduleCaptionDefaults(800);
   const removeLandscapeFullscreen = installLandscapeFullscreen(video);
   showControls();
   applyPreferredQuality();
@@ -786,6 +814,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
       clearTimeout(toastTimer);
       clearTimeout(idleTimer);
       clearTimeout(spaceHoldTimer);
+      clearTimeout(captionDefaultTimer);
       if (frameCallback && video.cancelVideoFrameCallback) video.cancelVideoFrameCallback(frameCallback);
       document.removeEventListener("keydown", onKey, true);
       document.removeEventListener("mousemove", showControls);

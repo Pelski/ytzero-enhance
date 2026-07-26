@@ -89,7 +89,7 @@ Supported commands:
 | `toggle-fullscreen`, `enter-fullscreen`, `exit-fullscreen` | `{}` |
 | `request-state` | `{}` |
 
-The `C` shortcut retains the compatible `ytzero:enhance:captions-toggle-request` event. It includes `currentEnabled` and `requestedEnabled`; both are `null` when the state cannot be determined. The CC button opens a local-player-style menu: its switch enables or disables captions, and the language list comes from `player.captions.availableLanguages`. Selecting a language chooses the native embedded-player track or, when no exact track exists, translates an available base track.
+The `C` shortcut retains the compatible `ytzero:enhance:captions-toggle-request` event. It includes `currentEnabled` and `requestedEnabled`. The CC button opens a local-player-style menu: its switch enables or disables captions, and the language list comes from `player.captions.availableLanguages`. At runtime, the extension waits for the player's caption module, selects an exact native track when available, or intersects the requested language with `translationLanguages` and translates a translatable base track. Known player aliases such as `he`/`iw` are normalized. Caption operations are serialized, the profile default is applied once, and later context refreshes do not overwrite a user choice in the current player.
 
 ## Regression scenarios
 

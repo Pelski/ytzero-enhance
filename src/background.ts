@@ -4,6 +4,7 @@ import { defaultPairedInstance, PairedInstance, PairedInstances, pairedInstanceF
 import { PAIRED_INSTANCE_CONTENT_SCRIPT_ID, pairedInstanceContentScriptMatches } from "./content-registration";
 import { t } from "./i18n";
 import { callApi, ext } from "./webext";
+import { operateYouTubeCaptions } from "./youtube-captions";
 
 async function settings() {
   const stored = await callApi<Record<string, unknown>>(ext.storage.sync, "get", DEFAULT_SETTINGS);
@@ -231,36 +232,7 @@ async function setYouTubeCaptions(message: any, sender: any) {
     target: { tabId: sender.tab.id, frameIds: [sender.frameId] },
     world: "MAIN",
     args: [enabled, language, label],
-    func: async (turnOn: boolean, languageCode: string, languageLabel: string) => {
-      const player = document.querySelector(".html5-video-player") as any;
-      if (!player) return { ok: false, error: "player-unavailable" };
-      if (!turnOn) {
-        player.unloadModule?.("captions");
-        return { ok: true, enabled: false, language: languageCode };
-      }
-
-      player.loadModule?.("captions");
-      for (let attempt = 0; attempt < 20; attempt++) {
-        const tracks = player.getOption?.("captions", "tracklist");
-        if (Array.isArray(tracks) && tracks.length) {
-          const normalized = languageCode.toLowerCase();
-          const exact = tracks.find((track: any) => String(track?.languageCode ?? track?.language_code ?? "").toLowerCase() === normalized);
-          if (exact) player.setOption?.("captions", "track", exact);
-          else {
-            const source = tracks.find((track: any) => track?.isTranslatable === true || track?.is_translatable === true) ?? tracks[0];
-            player.setOption?.("captions", "track", {
-              ...source,
-              translationLanguage: { languageCode, languageName: languageLabel || languageCode },
-            });
-          }
-          return { ok: true, enabled: true, language: languageCode, translated: !exact };
-        }
-        await new Promise((resolve) => setTimeout(resolve, 100));
-      }
-
-      player.setOption?.("captions", "track", { languageCode, languageName: languageLabel || languageCode });
-      return { ok: true, enabled: true, language: languageCode, fallback: true };
-    },
+    func: operateYouTubeCaptions,
   });
   return results?.[0]?.result ?? { ok: false, error: t("captionsUnavailable") };
 }
