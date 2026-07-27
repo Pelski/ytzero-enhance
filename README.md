@@ -41,7 +41,7 @@ https://tools.applemediaservices.com/app-store/
 
 ## What it adds
 
-- Redirects supported watch, Shorts, live and short-link URLs to `/watch/:videoId` on your default YT Zero instance, preserving timestamps. The popup also offers an explicit redirect for supported video, public-playlist, and channel pages.
+- Redirects supported watch, Shorts, live, short-link, and public-playlist URLs to your default YT Zero instance, preserving video timestamps and playlist context. Both `/playlist?list=…` and legacy `/show/VL…` playlist addresses are supported. The popup also offers an explicit redirect for supported video, public-playlist, and channel pages.
 - Pairs securely from any signed-in YT Zero page; supports multiple local, LAN, HTTPS and reverse-proxy-path instances.
 - Reads the active YT Zero profile's playback speed, seek interval, FPS, quality ceiling, captions, chapters, SponsorBlock and screenshot naming settings.
 - Replaces the embedded player's native controls with a YT Zero-style control bar, buffering/progress display, chapters, SponsorBlock segments, volume, captions, PiP, fullscreen and theatre mode.

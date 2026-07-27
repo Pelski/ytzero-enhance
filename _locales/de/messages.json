@@ -16,7 +16,7 @@
   "settingsSynced": { "message": "Einstellungen synchronisiert" },
   "quickSettings": { "message": "Schnelleinstellungen der Erweiterung" },
   "redirectLinks": { "message": "Links umleiten" },
-  "redirectLinksDescription": { "message": "Unterstützte Videolinks werden in der Standardinstanz geöffnet" },
+  "redirectLinksDescription": { "message": "Unterstützte Video- und Playlist-Links werden in der Standardinstanz geöffnet" },
   "redirectTo": { "message": "Weiterleiten zu" },
   "enhancePlayer": { "message": "Player verbessern" },
   "enhancePlayerDescription": { "message": "Aussehen und Verhalten wie in YT Zero" },

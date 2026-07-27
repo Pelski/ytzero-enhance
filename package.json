@@ -1,6 +1,6 @@
 {
   "name": "ytzero-enhance",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Make YT Zero better with smoother playback, smart link handling, and more control over every video.",
   "private": true,
   "type": "module",

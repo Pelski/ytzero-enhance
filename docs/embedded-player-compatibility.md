@@ -102,7 +102,7 @@ Test at least:
 5. 16:9, portrait, and letterboxed videos;
 6. two embeds on one page, capturing the active or visible player;
 7. preferred quality, captions through `C`, the language menu with exact and translated tracks, caption resizing, and collapsible volume controls;
-8. `watch`, `shorts`, `live`, and `youtu.be` navigation, timestamps, and an instance installed below a path prefix;
+8. `watch` with and without playlist context, `shorts`, `live`, `youtu.be`, `/playlist?list=…`, and legacy `/show/VL…` navigation, timestamps, and an instance installed below a path prefix;
 9. manual popup redirects for video, public-playlist, direct channel-ID, and handle-based channel pages;
 10. disabled redirects, the `#ytNoRedirect` escape marker, and the `Alt+Shift+Y` shortcut;
 11. Chrome, Edge, Brave, and Firefox, including strict tracking protection;

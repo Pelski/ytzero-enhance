@@ -16,7 +16,7 @@
   "settingsSynced": { "message": "Ustawienia zsynchronizowane" },
   "quickSettings": { "message": "Szybkie ustawienia rozszerzenia" },
   "redirectLinks": { "message": "Przekierowuj linki" },
-  "redirectLinksDescription": { "message": "Obsługiwane linki otworzą się w domyślnej instancji" },
+  "redirectLinksDescription": { "message": "Obsługiwane linki do filmów i playlist otworzą się w domyślnej instancji" },
   "redirectTo": { "message": "Przekieruj na" },
   "enhancePlayer": { "message": "Ulepszaj odtwarzacz" },
   "enhancePlayerDescription": { "message": "Wygląd i zachowanie zgodne z YT Zero" },

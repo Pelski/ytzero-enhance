@@ -72,11 +72,19 @@ export function youtubeVideoId(input: string): string | null {
   return id && VIDEO_ID.test(id) ? id : null;
 }
 
+export function youtubePlaylistId(input: string): string | null {
+  const url = youtubeUrl(input);
+  if (!url) return null;
+  let id = url.pathname === "/playlist" || url.pathname === "/watch" ? url.searchParams.get("list") : null;
+  if (!id) id = url.pathname.match(/^\/show\/VL([A-Za-z0-9_-]+)(?:\/|$)/)?.[1] ?? null;
+  return id && PLAYLIST_ID.test(id) ? id : null;
+}
+
 export function isRedirectableYouTubeUrl(input: string): boolean {
   const url = youtubeUrl(input);
   if (!url || hasNoRedirectMarker(input)) return false;
   if (/^\/embed\//.test(url.pathname)) return false;
-  return youtubeVideoId(input) !== null;
+  return youtubeVideoId(input) !== null || youtubePlaylistId(input) !== null;
 }
 
 export function localWatchUrl(input: string, instanceUrl: string): string | null {
@@ -88,7 +96,9 @@ export function localWatchUrl(input: string, instanceUrl: string): string | null
     source = new URL(input);
   } catch { return null; }
   const seconds = parseTimestamp(source.searchParams.get("t") ?? source.searchParams.get("start"));
-  return withInstancePath(instanceUrl, `/watch/${id}`, seconds > 0 ? `?t=${seconds}` : "");
+  const playlistId = youtubePlaylistId(input);
+  const path = playlistId ? `/watch/${id}/playlist/${encodeURIComponent(playlistId)}` : `/watch/${id}`;
+  return withInstancePath(instanceUrl, path, seconds > 0 ? `?t=${seconds}` : "");
 }
 
 /** Map a source-site video, public playlist, or channel page to YT Zero. */
@@ -101,10 +111,8 @@ export function localContentUrl(input: string, instanceUrl: string, resolvedChan
   const video = youtubeVideoId(unmarked.toString());
   if (video && !/^\/embed\//.test(source.pathname)) return localWatchUrl(unmarked.toString(), instanceUrl);
 
-  if (source.pathname === "/playlist") {
-    const playlistId = source.searchParams.get("list") ?? "";
-    if (PLAYLIST_ID.test(playlistId)) return withInstancePath(instanceUrl, `/playlist/${encodeURIComponent(playlistId)}`);
-  }
+  const playlistId = youtubePlaylistId(unmarked.toString());
+  if (playlistId) return withInstancePath(instanceUrl, `/playlist/${encodeURIComponent(playlistId)}`);
 
   const directChannelId = source.pathname.match(/^\/channel\/([^/?#]+)/)?.[1] ?? "";
   const channelId = resolvedChannelId && CHANNEL_ID.test(resolvedChannelId) ? resolvedChannelId : directChannelId;

@@ -12,7 +12,7 @@ const EN: Record<string, string> = {
   settingsSynced: "Settings synchronized",
   quickSettings: "Quick extension settings",
   redirectLinks: "Redirect links",
-  redirectLinksDescription: "Supported video links will open in the default instance",
+  redirectLinksDescription: "Supported video and playlist links will open in the default instance",
   redirectTo: "Redirect to",
   enhancePlayer: "Enhance the player",
   enhancePlayerDescription: "Appearance and behavior consistent with YT Zero",

@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, isRedirectableYouTubeUrl, localWatchUrl, normalizeSettings, screenshotFilename } from "./core";
+import { DEFAULT_SETTINGS, isRedirectableYouTubeUrl, localContentUrl, normalizeSettings, screenshotFilename } from "./core";
 import { EnhanceConfiguration, PLAYBACK_QUALITY_ORDER, validateEnhanceConfiguration, validateEnhanceContext, validatePlayerCommand, validatePlayerEvent, validateScreenshotRequest } from "./contract";
 import { defaultPairedInstance, PairedInstance, PairedInstances, pairedInstanceForPage, PAIRED_INSTANCES_KEY } from "./instances";
 import { PAIRED_INSTANCE_CONTENT_SCRIPT_ID, pairedInstanceContentScriptMatches } from "./content-registration";
@@ -68,7 +68,7 @@ async function redirect(details: any) {
   if (details.frameId !== 0 || !isRedirectableYouTubeUrl(details.url)) return;
   const config = await settings();
   if (!config.redirectEnabled) return;
-  const destination = localWatchUrl(details.url, config.instanceUrl);
+  const destination = localContentUrl(details.url, config.instanceUrl);
   if (destination) await callApi(ext.tabs, "update", details.tabId, { url: destination }).catch(() => {});
 }
 
