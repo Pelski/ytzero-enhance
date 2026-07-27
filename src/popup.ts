@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, normalizeSettings } from "./core";
+import { DEFAULT_SETTINGS, localContentUrl, normalizeSettings } from "./core";
 import { hostPermissionPattern } from "./contract";
 import { friendlyInstanceName, inferInstanceUrl, PairedInstance, parseEmbeddedConfigurationText } from "./instances";
 import { localizeDocument, t } from "./i18n";
@@ -14,7 +14,42 @@ const message = document.querySelector<HTMLOutputElement>("#message")!;
 const onboardingMessage = document.querySelector<HTMLOutputElement>("#onboarding-message")!;
 const redirect = document.querySelector<HTMLInputElement>('input[name="redirectEnabled"]')!;
 const enhance = document.querySelector<HTMLInputElement>('input[name="enhancePlayer"]')!;
+const redirectCurrent = document.querySelector<HTMLButtonElement>("#redirect-current")!;
 let defaultInstance: PairedInstance | null = null;
+let activeRedirect: { tabId: number; url: string } | null = null;
+
+function instanceAddress(value: string): string {
+  try {
+    const url = new URL(value);
+    return `${url.host}${url.pathname.replace(/\/$/, "")}`;
+  } catch { return value; }
+}
+
+async function sourceChannelId(tabId: number, tabUrl: string): Promise<string | null> {
+  if (!/^https:\/\/www\.youtube\.com\/(?:@|c\/|user\/)/i.test(tabUrl)) return null;
+  const results = await callApi<any[]>(ext.scripting, "executeScript", {
+    target: { tabId },
+    func: () => document.querySelector<HTMLMetaElement>('meta[itemprop="channelId"]')?.content ?? null,
+  }).catch(() => []);
+  const value = results?.[0]?.result;
+  return typeof value === "string" ? value : null;
+}
+
+async function loadActiveRedirect() {
+  activeRedirect = null;
+  redirectCurrent.hidden = true;
+  if (!defaultInstance) return;
+  const tabs = await callApi<any[]>(ext.tabs, "query", { active: true, currentWindow: true }).catch(() => []);
+  const tab = tabs[0];
+  if (tab?.id == null || !tab.url) return;
+  const channelId = await sourceChannelId(tab.id, tab.url);
+  const destination = localContentUrl(tab.url, defaultInstance.url, channelId);
+  if (!destination) return;
+  activeRedirect = { tabId: tab.id, url: destination };
+  redirectCurrent.textContent = `${t("redirectTo")} ${instanceAddress(defaultInstance.url)}`;
+  redirectCurrent.title = destination;
+  redirectCurrent.hidden = false;
+}
 
 async function load() {
   const [stored, registry] = await Promise.all([
@@ -36,6 +71,7 @@ async function load() {
   sync.classList.toggle("off", !defaultInstance!.configuration.enabled || Boolean(defaultInstance!.diagnostic));
   redirect.checked = settings.redirectEnabled;
   enhance.checked = settings.enhancePlayer;
+  await loadActiveRedirect();
 }
 
 async function pairActiveTab(button: HTMLButtonElement, output: HTMLOutputElement) {
@@ -95,6 +131,11 @@ async function saveToggle(key: string, value: boolean) {
 
 redirect.addEventListener("change", () => void saveToggle("redirectEnabled", redirect.checked));
 enhance.addEventListener("change", () => void saveToggle("enhancePlayer", enhance.checked));
+
+redirectCurrent.addEventListener("click", () => {
+  if (activeRedirect) void callApi(ext.tabs, "update", activeRedirect.tabId, { url: activeRedirect.url });
+  window.close();
+});
 
 document.querySelector("#capture")?.addEventListener("click", async () => {
   message.textContent = t("capturing");

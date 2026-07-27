@@ -18,15 +18,18 @@ Main project: [Pelski/ytzero](https://github.com/Pelski/ytzero)
 
 ## Install
 
-Store releases are being prepared. The official download buttons will appear here as soon as each listing is public. Until then, use the [manual installation](#build-and-install-manually) instructions below.
+Install the Chromium release from the Chrome Web Store. For other browsers, use the [manual installation](#build-and-install-manually) instructions until their store listings are public.
+
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/yt-zero-enhance/dibdidnkdjnbnoicdmbklmmpchkfmmhd?hl=pl&amp;authuser=0"><img src="https://developer.chrome.com/static/docs/webstore/branding/image/iNEddTyWiMfLSwFD6qGq.png" height="58" alt="Available in the Chrome Web Store"></a>
+</p>
 
 <!--
-STORE BADGES — replace every STORE_LISTING_URL, then uncomment only after the
+REMAINING STORE BADGES — replace every STORE_LISTING_URL, then uncomment only after the
 corresponding listing is publicly available. Official artwork and its aspect
 ratio must not be modified.
 
 <p align="center">
-  <a href="CHROME_WEB_STORE_LISTING_URL"><img src="https://developer.chrome.com/static/docs/webstore/branding/image/iNEddTyWiMfLSwFD6qGq.png" height="58" alt="Available in the Chrome Web Store"></a>
   <a href="FIREFOX_AMO_LISTING_URL"><img src="https://blog.mozilla.org/addons/files/2020/04/get-the-addon-fx-apr-2020.svg" height="58" alt="Get the add-on for Firefox"></a>
   <a href="EDGE_ADDONS_LISTING_URL"><img src="https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/add-ons-badge-images/microsoft-edge-add-ons-badge.png" height="58" alt="Get it from Microsoft Edge Add-ons"></a>
   <a href="APPLE_APP_STORE_LISTING_URL"><img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" height="58" alt="Download on the App Store"></a>
@@ -38,7 +41,7 @@ https://tools.applemediaservices.com/app-store/
 
 ## What it adds
 
-- Redirects supported watch, Shorts, live and short-link URLs to `/watch/:videoId` on your default YT Zero instance, preserving timestamps.
+- Redirects supported watch, Shorts, live and short-link URLs to `/watch/:videoId` on your default YT Zero instance, preserving timestamps. The popup also offers an explicit redirect for supported video, public-playlist, and channel pages.
 - Pairs securely from any signed-in YT Zero page; supports multiple local, LAN, HTTPS and reverse-proxy-path instances.
 - Reads the active YT Zero profile's playback speed, seek interval, FPS, quality ceiling, captions, chapters, SponsorBlock and screenshot naming settings.
 - Replaces the embedded player's native controls with a YT Zero-style control bar, buffering/progress display, chapters, SponsorBlock segments, volume, captions, PiP, fullscreen and theatre mode.
@@ -67,7 +70,7 @@ The extension does not modify the YT Zero application or its database.
 4. Choose **Connect this tab**.
 5. Grant access to the instance when your browser asks.
 
-Pair other instances in the same way. Each paired page uses its own active profile; only supported video-link redirects use the instance marked as default. The popup lets you toggle redirects and player enhancements, capture a frame, open your instance and manage connections.
+Pair other instances in the same way. Each paired page uses its own active profile; only supported link redirects use the instance marked as default. The popup lets you redirect the current supported page explicitly, toggle automatic video redirects and player enhancements, capture a frame, open your instance and manage connections. Source-site links opened deliberately from YT Zero carry `#ytNoRedirect`, so the automatic redirect does not immediately send them back.
 
 ## Keyboard shortcuts
 

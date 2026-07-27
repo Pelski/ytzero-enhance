@@ -17,6 +17,7 @@
   "quickSettings": { "message": "Quick extension settings" },
   "redirectLinks": { "message": "Redirect links" },
   "redirectLinksDescription": { "message": "Supported video links will open in the default instance" },
+  "redirectTo": { "message": "Redirect to" },
   "enhancePlayer": { "message": "Enhance the player" },
   "enhancePlayerDescription": { "message": "Appearance and behavior consistent with YT Zero" },
   "saveFrame": { "message": "Save frame" },

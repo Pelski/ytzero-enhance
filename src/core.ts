@@ -13,6 +13,40 @@ export const DEFAULT_SETTINGS = {
 export type Settings = typeof DEFAULT_SETTINGS;
 
 const VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
+const CHANNEL_ID = /^UC[A-Za-z0-9_-]{22}$/;
+const PLAYLIST_ID = /^[A-Za-z0-9_-]{10,80}$/;
+export const YT_NO_REDIRECT_MARKER = "ytNoRedirect";
+
+function youtubeUrl(input: string): URL | null {
+  try {
+    const url = new URL(input);
+    const host = url.hostname.replace(/^www\./, "").toLowerCase();
+    if (!["youtube.com", "m.youtube.com", "music.youtube.com", "youtube-nocookie.com", "youtu.be"].includes(host)) return null;
+    return /^https?:$/.test(url.protocol) ? url : null;
+  } catch { return null; }
+}
+
+function localBase(instanceUrl: string): URL | null {
+  try {
+    const base = new URL(instanceUrl);
+    return /^https?:$/.test(base.protocol) ? base : null;
+  } catch { return null; }
+}
+
+function withInstancePath(instanceUrl: string, path: string, search = ""): string | null {
+  const base = localBase(instanceUrl);
+  if (!base) return null;
+  const prefix = base.pathname.replace(/\/$/, "");
+  base.pathname = `${prefix}${path}`.replace(/\/{2,}/g, "/");
+  base.search = search;
+  base.hash = "";
+  return base.toString();
+}
+
+export function hasNoRedirectMarker(input: string): boolean {
+  const url = youtubeUrl(input);
+  return Boolean(url?.hash.slice(1).split("&").includes(YT_NO_REDIRECT_MARKER));
+}
 
 export function parseTimestamp(value: string | null): number {
   if (!value) return 0;
@@ -39,8 +73,8 @@ export function youtubeVideoId(input: string): string | null {
 }
 
 export function isRedirectableYouTubeUrl(input: string): boolean {
-  let url: URL;
-  try { url = new URL(input); } catch { return false; }
+  const url = youtubeUrl(input);
+  if (!url || hasNoRedirectMarker(input)) return false;
   if (/^\/embed\//.test(url.pathname)) return false;
   return youtubeVideoId(input) !== null;
 }
@@ -50,19 +84,36 @@ export function localWatchUrl(input: string, instanceUrl: string): string | null
   const id = youtubeVideoId(input);
   if (!id) return null;
   let source: URL;
-  let base: URL;
   try {
     source = new URL(input);
-    base = new URL(instanceUrl);
   } catch { return null; }
-  if (!/^https?:$/.test(base.protocol)) return null;
-  const prefix = base.pathname.replace(/\/$/, "");
-  base.pathname = `${prefix}/watch/${id}`.replace(/\/{2,}/g, "/");
-  base.search = "";
-  base.hash = "";
   const seconds = parseTimestamp(source.searchParams.get("t") ?? source.searchParams.get("start"));
-  if (seconds > 0) base.searchParams.set("t", String(seconds));
-  return base.toString();
+  return withInstancePath(instanceUrl, `/watch/${id}`, seconds > 0 ? `?t=${seconds}` : "");
+}
+
+/** Map a source-site video, public playlist, or channel page to YT Zero. */
+export function localContentUrl(input: string, instanceUrl: string, resolvedChannelId?: string | null): string | null {
+  const source = youtubeUrl(input);
+  if (!source) return null;
+
+  const unmarked = new URL(source);
+  unmarked.hash = "";
+  const video = youtubeVideoId(unmarked.toString());
+  if (video && !/^\/embed\//.test(source.pathname)) return localWatchUrl(unmarked.toString(), instanceUrl);
+
+  if (source.pathname === "/playlist") {
+    const playlistId = source.searchParams.get("list") ?? "";
+    if (PLAYLIST_ID.test(playlistId)) return withInstancePath(instanceUrl, `/playlist/${encodeURIComponent(playlistId)}`);
+  }
+
+  const directChannelId = source.pathname.match(/^\/channel\/([^/?#]+)/)?.[1] ?? "";
+  const channelId = resolvedChannelId && CHANNEL_ID.test(resolvedChannelId) ? resolvedChannelId : directChannelId;
+  if (CHANNEL_ID.test(channelId)) return withInstancePath(instanceUrl, `/channel/${channelId}`);
+
+  const channelPath = source.pathname.match(/^\/(?:@([^/?#]+)|(?:c|user)\/([^/?#]+))(?:\/|$)/);
+  const channelQuery = channelPath?.[1] ? `@${channelPath[1]}` : channelPath?.[2];
+  if (channelQuery) return withInstancePath(instanceUrl, "/search", `?q=${encodeURIComponent(channelQuery)}`);
+  return null;
 }
 
 export function formatClock(seconds: number, milliseconds = false): string {

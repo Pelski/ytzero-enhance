@@ -103,7 +103,8 @@ Test at least:
 6. two embeds on one page, capturing the active or visible player;
 7. preferred quality, captions through `C`, the language menu with exact and translated tracks, caption resizing, and collapsible volume controls;
 8. `watch`, `shorts`, `live`, and `youtu.be` navigation, timestamps, and an instance installed below a path prefix;
-9. disabled redirects and the `Alt+Shift+Y` shortcut;
-10. Chrome, Edge, Brave, and Firefox, including strict tracking protection;
-11. pairing root and reverse-proxy instances, DOM configuration, profile changes, and default-instance switching;
-12. a screenshot request from YT Zero, synchronous `preventDefault()`, and the `saved`/`error` result.
+9. manual popup redirects for video, public-playlist, direct channel-ID, and handle-based channel pages;
+10. disabled redirects, the `#ytNoRedirect` escape marker, and the `Alt+Shift+Y` shortcut;
+11. Chrome, Edge, Brave, and Firefox, including strict tracking protection;
+12. pairing root and reverse-proxy instances, DOM configuration, profile changes, and default-instance switching;
+13. a screenshot request from YT Zero, synchronous `preventDefault()`, and the `saved`/`error` result.

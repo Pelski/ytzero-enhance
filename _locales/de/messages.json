@@ -17,6 +17,7 @@
   "quickSettings": { "message": "Schnelleinstellungen der Erweiterung" },
   "redirectLinks": { "message": "Links umleiten" },
   "redirectLinksDescription": { "message": "Unterstützte Videolinks werden in der Standardinstanz geöffnet" },
+  "redirectTo": { "message": "Weiterleiten zu" },
   "enhancePlayer": { "message": "Player verbessern" },
   "enhancePlayerDescription": { "message": "Aussehen und Verhalten wie in YT Zero" },
   "saveFrame": { "message": "Bild speichern" },

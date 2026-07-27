@@ -23,8 +23,12 @@ const previewInstances = [
 ];
 const isEmptyPreview = new URL(location.href).searchParams.has("empty");
 const asyncReply = (callback, value) => queueMicrotask(() => callback?.(value));
+const previewMessages = { redirectTo: "Przekieruj na", settingsSynced: "Ustawienia zsynchronizowane", enhancementsDisabled: "Ulepszenia wyłączone w YT Zero" };
+try { Object.defineProperty(globalThis, "browser", { value: undefined, configurable: true, writable: true }); } catch {}
 globalThis.chrome = {
+  i18n: { getUILanguage: () => "pl", getMessage: (key) => previewMessages[key] ?? "" },
   runtime: {
+    id: "preview",
     lastError: null,
     getURL: (path = "") => `chrome-extension://preview/${path}`,
     sendMessage(message, callback) {
@@ -40,7 +44,12 @@ globalThis.chrome = {
     local: { get(_keys, callback) { asyncReply(callback, {}); }, set(_value, callback) { asyncReply(callback); }, remove(_keys, callback) { asyncReply(callback); } },
     onChanged: { addListener() {} },
   },
-  tabs: { query(_query, callback) { asyncReply(callback, []); }, create(_options, callback) { asyncReply(callback); }, reload(_id, callback) { asyncReply(callback); } },
+  tabs: {
+    query(_query, callback) { asyncReply(callback, [{ id: 1, url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ" }]); },
+    create(_options, callback) { asyncReply(callback); },
+    reload(_id, callback) { asyncReply(callback); },
+    update(_id, _options, callback) { asyncReply(callback); },
+  },
   scripting: { executeScript(_options, callback) { asyncReply(callback, []); } },
   permissions: { request(_options, callback) { asyncReply(callback, true); }, remove(_options, callback) { asyncReply(callback, true); } },
 };
