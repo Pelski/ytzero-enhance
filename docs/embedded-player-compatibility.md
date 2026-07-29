@@ -32,6 +32,18 @@ Issue tracker status reviewed on July 25, 2026. All public issues in the YT Zero
 
 When control replacement is active, `controls=0` and `disablekb=1` are only additional URL hints; the extension does not depend on the player honoring them. CSS running inside the iframe hides direct `.html5-video-player` layers except the video container, captions, loading indicator, and advertisement labels and controls. Separate selectors cover both classic UI portals and newer variants (`ytwPlayer…`, `player-controls-*`, settings menus, and fullscreen recommendations), including elements mounted outside the usual player layer tree.
 
+### Content-specific control modes
+
+YT Zero supplies the semantic presentation through validated `context.video.contentType`. The extension applies `default`, `short`, and `livestream` changes in place. Older application builds fall back to the `/shorts` route and native active-broadcast detection; aspect ratio is never used to classify content.
+
+The replacement UI has three presentations:
+
+- **standard** keeps the complete timeline, volume slider, elapsed/duration label, captions, PiP and fullscreen;
+- **live** uses the current seekable DVR window instead of the non-finite media duration, clamps its end to buffered or already observed playable media so the timeline cannot seek into a manifest's unavailable future edge, shows a live-edge action with the current delay, keeps playback at 1× and disables frame stepping and hold-for-2×;
+- **shorts** uses compact circular controls and a thinner timeline for a vertical viewport, while hiding the expanded volume slider, time label and PiP button. Controls start hidden and are revealed only by pointer movement or a click/tap, never by autoplay, pause, initialization, or a context change while scrolling. When the iframe has focus, Up/Down is forwarded to YT Zero's previous/next short-form navigation instead of changing volume.
+
+Shorts mode is derived from the authenticated paired page's `/shorts` route. Live mode is verified inside the exact embedded frame through a narrow `MAIN`-world player-state probe, with media duration and the native live class retained as fallbacks. No additional permission is required.
+
 ## Bidirectional player bridge
 
 Communication uses two DOM events on the paired instance's top-level `document`. The `detail` value is always a JSON string because the application and extension content script run in isolated JavaScript worlds.
@@ -102,9 +114,10 @@ Test at least:
 5. 16:9, portrait, and letterboxed videos;
 6. two embeds on one page, capturing the active or visible player;
 7. preferred quality, captions through `C`, the language menu with exact and translated tracks, caption resizing, and collapsible volume controls;
-8. `watch` with and without playlist context, `shorts`, `live`, `youtu.be`, `/playlist?list=…`, and legacy `/show/VL…` navigation, timestamps, and an instance installed below a path prefix;
-9. manual popup redirects for video, public-playlist, direct channel-ID, and handle-based channel pages;
-10. disabled redirects, the `#ytNoRedirect` escape marker, and the `Alt+Shift+Y` shortcut;
-11. Chrome, Edge, Brave, and Firefox, including strict tracking protection;
-12. pairing root and reverse-proxy instances, DOM configuration, profile changes, and default-instance switching;
-13. a screenshot request from YT Zero, synchronous `preventDefault()`, and the `saved`/`error` result.
+8. standard, live/DVR and shorts control modes, including live-edge seeking, disabled live frame stepping and compact vertical controls;
+9. `watch` with and without playlist context, `shorts`, `live`, `youtu.be`, `/playlist?list=…`, and legacy `/show/VL…` navigation, timestamps, and an instance installed below a path prefix;
+10. manual popup redirects for video, public-playlist, direct channel-ID, and handle-based channel pages;
+11. disabled redirects, the `#ytNoRedirect` escape marker, and the `Alt+Shift+Y` shortcut;
+12. Chrome, Edge, Brave, and Firefox, including strict tracking protection;
+13. pairing root and reverse-proxy instances, DOM configuration, profile changes, and default-instance switching;
+14. a screenshot request from YT Zero, synchronous `preventDefault()`, and the `saved`/`error` result.

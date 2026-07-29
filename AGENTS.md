@@ -38,6 +38,12 @@ The sibling `../ytzero` repository owns the application-side bridge. Its relevan
 
 ## Embedded player interaction decisions
 
+- Treat validated `context.video.contentType` (`default`, `short`, or `livestream`) as the source of truth for player presentation. Missing or unknown values retain the legacy `/shorts` and native-live fallbacks; valid context changes apply in place without reloading the iframe.
+- Shorts controls start hidden and must only reveal after pointer movement or a click/tap on the player. Autoplay, pause events, initial setup, and context changes while scrolling must not reveal them.
+
+- Player presentation has three modes: standard, live, and shorts. The background derives shorts mode from the paired top-page `/shorts` route and verifies live mode through a narrowly scoped `MAIN`-world player probe; the iframe also keeps DOM/media fallbacks.
+- Live mode shows a live-edge control, uses the seekable DVR window for progress, disables frame stepping and 2× hold, and keeps playback at 1×. Shorts mode uses compact circular controls, a lighter timeline, hides the expanded volume slider, elapsed-time label, and PiP button, and routes Up/Down from a focused iframe to the parent short-form navigator.
+- Clamp the live DVR end to buffered or already observed playable media with a small safety margin. Some manifests advertise a `seekable.end()` slightly ahead of the position the native player accepts, which otherwise creates a false future section that snaps back after seeking.
 - A single click on the player surface toggles play/pause.
 - A double-click anywhere on the iframe surface toggles fullscreen, except when the event comes from the custom controls. Do not depend on the upstream player's `.html5-video-player` class for the double-click target.
 - Fullscreen must toggle both ways with the standard Fullscreen API and with Safari's native video fallback (`webkitEnterFullscreen` / `webkitExitFullscreen`).

@@ -78,3 +78,29 @@ test("caption switch tracks the result of player operations instead of hidden Yo
   expect(content).toContain("scheduleCaptionDefaults(800)");
   expect(content).not.toContain("window.setTimeout(() => void setYouTubeCaptions(context.playback.captions.enabledByDefault");
 });
+
+test("live and short-form players receive purpose-built controls", () => {
+  expect(content).toContain('classList.toggle("mode-live"');
+  expect(content).toContain('classList.toggle("mode-shorts"');
+  expect(content).toContain('create("button", "live-edge")');
+  expect(content).toContain("liveSeekRange()");
+  expect(content).toContain('playerMode === "live" && (key === "," || key === ".")');
+  expect(content).toContain(":host(.mode-shorts) .controls");
+  expect(content).toContain(":host(.mode-shorts) .volume");
+  expect(content).toContain(":host(.mode-live) .time");
+  expect(background).toContain('"ytze-apply-player-mode"');
+  expect(background).toContain("embeddedPlayerModeForPage");
+  expect(background).toContain("getVideoData?.()?.isLive");
+  expect(content).toContain('"previous-short"');
+  expect(content).toContain('"next-short"');
+  expect(content).toContain('key: "shorts-prev"');
+  expect(content).toContain('key: "shorts-next"');
+  expect(content).toContain("setContentType(context.video.contentType");
+  expect(content).toContain("contentTypeAuthoritative");
+  expect(content).toContain("set-playback-rate is unavailable for livestreams");
+  expect(content).toContain("env(safe-area-inset-bottom");
+  expect(content).toContain(".live-edge.active .live-dot { animation: none; }");
+  expect(content).toContain('if (playerMode !== "shorts") showControls()');
+  expect(content).toContain('if (requestedPlayerMode === "shorts")');
+  expect(content).toContain(":host(.mode-shorts):not(.visible) .big-play");
+});

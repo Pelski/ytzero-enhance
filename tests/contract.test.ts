@@ -192,7 +192,22 @@ test("validates and normalizes per-video bridge context", () => {
     screenshot: { format: "png", quality: .9, filenameTemplate: "{title}" },
   });
   expect(context?.playback.rate).toBe(1.5);
+  expect(context?.video.contentType).toBe("default");
   expect(context?.playback.sponsorBlockSegments[0]?.segment).toEqual([10, 20]);
+});
+
+test("normalizes all content types once at the context boundary", () => {
+  const input = {
+    version: 1, active: true,
+    video: { id: "dQw4w9WgXcQ", title: "Film", channelId: "UC1", channelTitle: "Channel", duration: 100 },
+    playback: { rate: 1, keyboardSeekSeconds: 5, frameStepFps: 30, captions: { enabledByDefault: false, language: "en", style: {} }, chapters: [], sponsorBlockSegments: [] },
+    screenshot: { format: "png", quality: .9, filenameTemplate: "{title}" },
+  } as any;
+  for (const contentType of ["default", "short", "livestream"] as const) {
+    expect(validateEnhanceContext({ ...input, video: { ...input.video, contentType } })?.video.contentType).toBe(contentType);
+  }
+  expect(validateEnhanceContext(input, "short")?.video.contentType).toBe("short");
+  expect(validateEnhanceContext({ ...input, video: { ...input.video, contentType: "future-format" } }, "livestream")?.video.contentType).toBe("livestream");
 });
 
 test("disabled and reveal-native-controls states never hide YouTube controls", () => {

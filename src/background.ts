@@ -1,4 +1,4 @@
-import { DEFAULT_SETTINGS, isRedirectableYouTubeUrl, localContentUrl, normalizeSettings, screenshotFilename } from "./core";
+import { DEFAULT_SETTINGS, embeddedPlayerModeForPage, isRedirectableYouTubeUrl, localContentUrl, normalizeSettings, screenshotFilename } from "./core";
 import { EnhanceConfiguration, PLAYBACK_QUALITY_ORDER, validateEnhanceConfiguration, validateEnhanceContext, validatePlayerCommand, validatePlayerEvent, validateScreenshotRequest } from "./contract";
 import { defaultPairedInstance, PairedInstance, PairedInstances, pairedInstanceForPage, PAIRED_INSTANCES_KEY } from "./instances";
 import { PAIRED_INSTANCE_CONTENT_SCRIPT_ID, pairedInstanceContentScriptMatches } from "./content-registration";
@@ -124,14 +124,12 @@ ext.runtime.onMessage.addListener((message: any, sender: any, sendResponse: (val
     return true;
   }
   if (message?.type === "ytze-bridge-context") {
-    void routeBridgeContext(message.context, sender).then(sendResponse, (error) => sendResponse({ ok: false, error: error.message }));
+    void routeBridgeContext(message, sender).then(sendResponse, (error) => sendResponse({ ok: false, error: error.message }));
     return true;
   }
   if (message?.type === "ytze-player-ready") {
-    if (sender.tab?.id != null && youtubeFrameMatches(sender.url, message.videoId)) {
-      void callApi(ext.tabs, "sendMessage", sender.tab.id, { type: "ytze-request-context" }, { frameId: 0 }).catch(() => {});
-    }
-    sendResponse({ ok: true });
+    void initializePlayerFrame(message, sender).then(sendResponse, (error) => sendResponse({ ok: false, error: error.message }));
+    return true;
   }
   if (message?.type === "ytze-apply-preferred-quality") {
     void applyPreferredQuality(sender).then(sendResponse, (error) => sendResponse({ ok: false, error: error.message }));
@@ -148,8 +146,13 @@ ext.runtime.onMessage.addListener((message: any, sender: any, sendResponse: (val
   if (message?.type === "ytze-player-ended" && sender.tab?.id != null) {
     void callApi(ext.tabs, "sendMessage", sender.tab.id, { type: "ytze-exit-fullscreen" }, { frameId: 0 }).catch(() => {});
   }
-  if (message?.type === "ytze-player-page-shortcut" && sender.tab?.id != null && youtubeFrameMatches(sender.url, youtubeVideoIdFromFrame(sender.url)) && message.key === "t") {
-    void callApi(ext.tabs, "sendMessage", sender.tab.id, { type: "ytze-dispatch-page-shortcut", key: "t" }, { frameId: 0 }).catch(() => {});
+  if (
+    message?.type === "ytze-player-page-shortcut"
+    && sender.tab?.id != null
+    && youtubeFrameMatches(sender.url, youtubeVideoIdFromFrame(sender.url))
+    && ["t", "shorts-prev", "shorts-next"].includes(message.key)
+  ) {
+    void callApi(ext.tabs, "sendMessage", sender.tab.id, { type: "ytze-dispatch-page-shortcut", key: message.key }, { frameId: 0 }).catch(() => {});
     sendResponse({ ok: true });
   }
   if (message?.type === "ytze-player-event") {
@@ -165,6 +168,36 @@ ext.runtime.onMessage.addListener((message: any, sender: any, sendResponse: (val
     return true;
   }
 });
+
+async function initializePlayerFrame(message: any, sender: any) {
+  if (sender.tab?.id == null || sender.frameId == null || !youtubeFrameMatches(sender.url, message.videoId)) {
+    throw new Error(t("invalidPlayerFrame"));
+  }
+  const instances = await pairedInstances();
+  const paired = pairedInstanceForPage(instances, sender.tab.url || "");
+  const live = await detectLivePlayerFrame(sender);
+  const mode = live ? "live" : paired ? embeddedPlayerModeForPage(sender.tab.url || "") : "standard";
+  await Promise.all([
+    callApi(ext.tabs, "sendMessage", sender.tab.id, { type: "ytze-apply-player-mode", mode }, { frameId: sender.frameId }).catch(() => {}),
+    callApi(ext.tabs, "sendMessage", sender.tab.id, { type: "ytze-request-context" }, { frameId: 0 }).catch(() => {}),
+  ]);
+  return { ok: true, mode };
+}
+
+async function detectLivePlayerFrame(sender: any): Promise<boolean> {
+  const results = await callApi<any[]>(ext.scripting, "executeScript", {
+    target: { tabId: sender.tab.id, frameIds: [sender.frameId] },
+    world: "MAIN",
+    func: () => {
+      const player = document.querySelector(".html5-video-player") as any;
+      const video = document.querySelector("video");
+      return video?.duration === Infinity
+        || player?.classList?.contains("ytp-live") === true
+        || player?.getVideoData?.()?.isLive === true;
+    },
+  }).catch(() => []);
+  return results?.[0]?.result === true;
+}
 
 function youtubeFrameMatches(url: string | undefined, videoId: unknown) {
   return typeof url === "string" && typeof videoId === "string" && isYouTubeFrameUrl(url) && url.includes(videoId);
@@ -326,13 +359,14 @@ async function storePageConfigurationError(message: any, sender: any) {
   return { ok: true };
 }
 
-async function routeBridgeContext(input: unknown, sender: any) {
+async function routeBridgeContext(message: any, sender: any) {
   await assertPairedTopPage(sender);
-  const context = validateEnhanceContext(input);
+  const context = validateEnhanceContext(message?.context);
   if (!context) throw new Error(t("invalidBridgeContext"));
   const frames = await callApi<any[]>(ext.webNavigation, "getAllFrames", { tabId: sender.tab.id }).catch(() => []);
   const targets = frames.filter((frame) => frame.frameId !== 0 && youtubeFrameMatches(frame.url, context.video.id));
-  await Promise.all(targets.map((frame) => callApi(ext.tabs, "sendMessage", sender.tab.id, { type: "ytze-apply-context", context }, { frameId: frame.frameId }).catch(() => null)));
+  const contentTypeAuthoritative = message?.contentTypeAuthoritative === true;
+  await Promise.all(targets.map((frame) => callApi(ext.tabs, "sendMessage", sender.tab.id, { type: "ytze-apply-context", context, contentTypeAuthoritative }, { frameId: frame.frameId }).catch(() => null)));
   return { ok: true, frames: targets.length };
 }
 

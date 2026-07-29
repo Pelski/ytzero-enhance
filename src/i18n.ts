@@ -79,6 +79,8 @@ const EN: Record<string, string> = {
   cinemaModeShortcut: "Cinema mode (T)",
   pictureInPicture: "Picture in picture",
   fullscreen: "Fullscreen",
+  live: "LIVE",
+  goLive: "Go live",
   captionsUnavailable: "Captions unavailable",
   invalidCaptionLanguage: "Invalid caption language",
   pipUnavailable: "Picture in picture unavailable",

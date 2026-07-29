@@ -83,6 +83,8 @@
   "cinemaModeShortcut": { "message": "Kinomodus (T)" },
   "pictureInPicture": { "message": "Bild-in-Bild" },
   "fullscreen": { "message": "Vollbild" },
+  "live": { "message": "LIVE" },
+  "goLive": { "message": "Zum Livepunkt" },
   "captionsUnavailable": { "message": "Untertitel nicht verfügbar" },
   "invalidCaptionLanguage": { "message": "Ungültige Untertitelsprache" },
   "pipUnavailable": { "message": "Bild-in-Bild nicht verfügbar" },

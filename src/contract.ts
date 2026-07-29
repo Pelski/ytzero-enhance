@@ -29,6 +29,8 @@ export const ENHANCE_PLAYER_COMMANDS = [
 export type EnhancePlayerCommandName = typeof ENHANCE_PLAYER_COMMANDS[number];
 
 export type ScreenshotFormat = "png" | "jpeg" | "webp";
+export const CONTENT_TYPES = ["default", "short", "livestream"] as const;
+export type ContentType = typeof CONTENT_TYPES[number];
 
 export interface CaptionStyle {
   fontSizePx: number;
@@ -79,7 +81,7 @@ export interface EnhanceConfiguration {
 export interface EnhanceContext {
   version: 1;
   active: true;
-  video: { id: string; title: string; channelId: string; channelTitle: string; duration: number };
+  video: { id: string; title: string; channelId: string; channelTitle: string; duration: number; contentType: ContentType };
   playback: {
     rate: number;
     keyboardSeekSeconds: number;
@@ -158,6 +160,14 @@ const COLOR = /^#[0-9a-f]{6}$/i;
 const QUALITY = /^[A-Za-z0-9_-]{1,32}$/;
 
 const object = (value: unknown): Record<string, any> | null => value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, any> : null;
+
+export function isContentType(value: unknown): value is ContentType {
+  return CONTENT_TYPES.includes(value as ContentType);
+}
+
+export function normalizeContentType(value: unknown, legacyFallback: ContentType): ContentType {
+  return isContentType(value) ? value : legacyFallback;
+}
 
 export function captionsToggleRequestDetail(videoId: unknown, currentEnabled: unknown): CaptionsToggleRequestDetail | null {
   if (typeof videoId !== "string" || !VIDEO_ID.test(videoId)) return null;
@@ -273,7 +283,7 @@ export function validateEnhanceConfiguration(value: unknown): ConfigurationValid
   }};
 }
 
-export function validateEnhanceContext(value: unknown): EnhanceContext | null {
+export function validateEnhanceContext(value: unknown, legacyFallback: ContentType = "default"): EnhanceContext | null {
   const root = object(value), video = object(root?.video), playback = object(root?.playback), captions = object(playback?.captions), screenshot = object(root?.screenshot);
   if (root?.version !== 1 || root.active !== true || !video || !VIDEO_ID.test(String(video.id ?? "")) || !playback || !captions || !screenshot) return null;
   const chapters = Array.isArray(playback.chapters) ? playback.chapters.flatMap((item: unknown) => {
@@ -291,6 +301,7 @@ export function validateEnhanceContext(value: unknown): EnhanceContext | null {
     video: {
       id: String(video.id), title: text(video.title, "YouTube", 300), channelId: text(video.channelId, "", 200),
       channelTitle: text(video.channelTitle, "YouTube", 200), duration: finite(video.duration, 0, 0, 86_400 * 30),
+      contentType: normalizeContentType(video.contentType, legacyFallback),
     },
     playback: {
       rate: finite(playback.rate, 1, .25, 4), keyboardSeekSeconds: finite(playback.keyboardSeekSeconds, 5, 1, 120),

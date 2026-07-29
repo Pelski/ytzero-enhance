@@ -83,6 +83,8 @@
   "cinemaModeShortcut": { "message": "Tryb kinowy (T)" },
   "pictureInPicture": { "message": "Obraz w obrazie" },
   "fullscreen": { "message": "Pełny ekran" },
+  "live": { "message": "NA ŻYWO" },
+  "goLive": { "message": "Przejdź na żywo" },
   "captionsUnavailable": { "message": "Napisy niedostępne" },
   "invalidCaptionLanguage": { "message": "Nieprawidłowy język napisów" },
   "pipUnavailable": { "message": "Obraz w obrazie niedostępny" },

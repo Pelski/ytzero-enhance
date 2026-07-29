@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
   "default_locale": "en",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "__MSG_extensionDescription__",
   "icons": { "16": "icons/icon-16.png", "19": "icons/icon-19.png", "32": "icons/icon-32.png", "38": "icons/icon-38.png", "48": "icons/icon-48.png", "64": "icons/icon-64.png", "128": "icons/icon-128.png" },
   "action": { "default_title": "__MSG_extensionName__", "default_popup": "popup.html", "default_icon": { "16": "icons/icon-16.png", "19": "icons/icon-19.png", "32": "icons/icon-32.png", "38": "icons/icon-38.png", "64": "icons/icon-64.png" } },

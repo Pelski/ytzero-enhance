@@ -45,6 +45,7 @@ https://tools.applemediaservices.com/app-store/
 - Pairs securely from any signed-in YT Zero page; supports multiple local, LAN, HTTPS and reverse-proxy-path instances.
 - Reads the active YT Zero profile's playback speed, seek interval, FPS, quality ceiling, captions, chapters, SponsorBlock and screenshot naming settings.
 - Replaces the embedded player's native controls with a YT Zero-style control bar, buffering/progress display, chapters, SponsorBlock segments, volume, captions, PiP, fullscreen and theatre mode.
+- Adapts that control bar to the content: live broadcasts get DVR-aware progress and a live-edge action, while short-form playback gets compact controls designed for a vertical viewport.
 - Makes shortcuts work without first focusing the iframe, including approximate frame stepping with `,` / `.`.
 - Captures the visible embedded video frame to PNG, JPEG or WebP.
 - Ships in English, Polish and German, selected from the browser UI language.

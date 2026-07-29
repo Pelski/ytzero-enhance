@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { containedMediaRect, hasNoRedirectMarker, isRedirectableYouTubeUrl, localContentUrl, localWatchUrl, parseTimestamp, safeFilename, screenshotFilename, youtubePlaylistId, youtubeVideoId } from "../src/core";
+import { containedMediaRect, embeddedPlayerModeForPage, hasNoRedirectMarker, isRedirectableYouTubeUrl, localContentUrl, localWatchUrl, parseTimestamp, playableLiveRange, playerTimeline, resolveEmbeddedPlayerMode, safeFilename, screenshotFilename, youtubePlaylistId, youtubeVideoId } from "../src/core";
 
 describe("YouTube URL mapping", () => {
   test.each([
@@ -42,6 +42,21 @@ describe("YouTube URL mapping", () => {
 test("timestamps", () => {
   expect(parseTimestamp("1h2m3s")).toBe(3723);
   expect(parseTimestamp("90")).toBe(90);
+});
+
+test("embedded player modes and live timeline", () => {
+  expect(embeddedPlayerModeForPage("https://home.test/apps/ytzero/shorts/dQw4w9WgXcQ")).toBe("shorts");
+  expect(embeddedPlayerModeForPage("https://home.test/apps/ytzero/watch/dQw4w9WgXcQ")).toBe("standard");
+  expect(resolveEmbeddedPlayerMode("standard", true, true)).toBe("standard");
+  expect(resolveEmbeddedPlayerMode("shorts", true, true)).toBe("shorts");
+  expect(resolveEmbeddedPlayerMode("standard", false, true)).toBe("live");
+  expect(playerTimeline(125, Infinity, { start: 100, end: 130 })).toEqual({
+    start: 100, end: 130, length: 30, fraction: 5 / 6, liveDelay: 5,
+  });
+  expect(playerTimeline(80, 100)).toEqual({ start: 0, end: 100, length: 100, fraction: .8, liveDelay: null });
+  expect(playableLiveRange(100, 140, 125, 132, 128)).toEqual({ start: 100, end: 131.5 });
+  expect(playableLiveRange(100, 140, 125, null, 128)).toEqual({ start: 100, end: 128 });
+  expect(playableLiveRange(100, 140, 135, 132, 128)).toEqual({ start: 100, end: 135 });
 });
 
 test("safe screenshot names", () => {

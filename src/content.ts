@@ -1,5 +1,5 @@
-import { containedMediaRect, DEFAULT_SETTINGS, formatClock, normalizeSettings, youtubeVideoId } from "./core";
-import { BridgeScreenshotRequest, claimScreenshotRequest, configuredPageMatches, embeddedPlayerParameters, EnhanceConfiguration, EnhanceContext, EnhancePlayerCommand, ENHANCE_BRIDGE_EVENTS, ENHANCE_PLAYER_EVENTS, frameStepSeconds, highestQualityAtOrBelow, isEditableShortcutTarget, MAX_COMMAND_DETAIL_LENGTH, MAX_CONTEXT_DETAIL_LENGTH, parseBridgeDetail, playerPresentationState, validateEnhanceContext, validatePlayerCommand } from "./contract";
+import { containedMediaRect, DEFAULT_SETTINGS, embeddedPlayerModeForPage, EmbeddedPlayerMode, formatClock, normalizeSettings, playableLiveRange, playerTimeline, resolveEmbeddedPlayerMode, youtubeVideoId } from "./core";
+import { BridgeScreenshotRequest, claimScreenshotRequest, configuredPageMatches, ContentType, embeddedPlayerParameters, EnhanceConfiguration, EnhanceContext, EnhancePlayerCommand, ENHANCE_BRIDGE_EVENTS, ENHANCE_PLAYER_EVENTS, frameStepSeconds, highestQualityAtOrBelow, isContentType, isEditableShortcutTarget, MAX_COMMAND_DETAIL_LENGTH, MAX_CONTEXT_DETAIL_LENGTH, parseBridgeDetail, playerPresentationState, validateEnhanceContext, validatePlayerCommand } from "./contract";
 import { EMBEDDED_CONFIGURATION_ID, PAIRED_INSTANCES_KEY, parseEmbeddedConfigurationText } from "./instances";
 import { t } from "./i18n";
 import { addApiListener, callApi, ext, extensionContextAvailable, onExtensionContextInvalidated } from "./webext";
@@ -188,10 +188,13 @@ function bootPageBridge() {
     }
   };
   const onContext = (event: Event) => {
-    const context = validateEnhanceContext(parseBridgeDetail(event as CustomEvent, MAX_CONTEXT_DETAIL_LENGTH));
+    const raw = parseBridgeDetail<any>(event as CustomEvent, MAX_CONTEXT_DETAIL_LENGTH);
+    const fallback: ContentType = embeddedPlayerModeForPage(location.href) === "shorts" ? "short" : "default";
+    const contentTypeAuthoritative = isContentType(raw?.video?.contentType);
+    const context = validateEnhanceContext(raw, fallback);
     if (context) {
       configureEmbeds(context);
-      void callApi(ext.runtime, "sendMessage", { type: "ytze-bridge-context", context }).catch(() => {});
+      void callApi(ext.runtime, "sendMessage", { type: "ytze-bridge-context", context, contentTypeAuthoritative }).catch(() => {});
     }
   };
   const onScreenshot = (event: Event) => {
@@ -310,6 +313,15 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   volumeWrap.append(muteElement, volumeElement);
   const timeElement = create("span", "time");
   timeElement.textContent = "0:00 / 0:00";
+  const liveEdgeElement = create("button", "live-edge") as HTMLButtonElement;
+  liveEdgeElement.type = "button";
+  liveEdgeElement.setAttribute("aria-label", t("goLive"));
+  liveEdgeElement.title = t("goLive");
+  const liveDotElement = create("span", "live-dot");
+  const liveLabelElement = create("span");
+  liveLabelElement.textContent = t("live");
+  liveEdgeElement.append(liveDotElement, liveLabelElement);
+  liveEdgeElement.hidden = true;
   const spacerElement = create("span", "spacer");
   const captionMenuWrapElement = create("div", "caption-menu-wrap");
   const captionsElement = iconButton("captions", t("captions"), PLAYER_ICONS.captions);
@@ -337,7 +349,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   captionMenuWrapElement.append(captionsElement, captionMenuElement);
   const pipElement = iconButton("pip", t("pictureInPicture"), PLAYER_ICONS.pip);
   const fullscreenElement = iconButton("fullscreen", t("fullscreen"), PLAYER_ICONS.fullscreen);
-  buttonsElement.append(playElement, volumeWrap, timeElement, spacerElement, captionMenuWrapElement, pipElement, fullscreenElement);
+  buttonsElement.append(playElement, volumeWrap, timeElement, liveEdgeElement, spacerElement, captionMenuWrapElement, pipElement, fullscreenElement);
   controlsElement.append(progressElement, buttonsElement);
   const toastElement = create("div", "toast");
   toastElement.setAttribute("aria-live", "polite");
@@ -388,6 +400,10 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   let captionUserOverride = false;
   let captionOperationQueue: Promise<unknown> = Promise.resolve();
   let lastStateEmit = 0;
+  let requestedPlayerMode: EmbeddedPlayerMode = "standard";
+  let contentTypeAuthoritative = false;
+  let playerMode: EmbeddedPlayerMode = "standard";
+  let observedLivePlayableEnd = 0;
   const lifecycle = new AbortController();
   const signal = lifecycle.signal;
   const videoId = youtubeVideoId(location.href)!;
@@ -434,11 +450,12 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     chapters: [], sponsorBlockSegments: [],
   };
 
-  const applyContext = (context: EnhanceContext) => {
+  const applyContext = (context: EnhanceContext, authoritative = true) => {
     if (context.video.id !== youtubeVideoId(location.href)) return;
     bridgeContext = context;
-    desiredRate = context.playback.rate;
-    video.playbackRate = context.playback.rate;
+    setContentType(context.video.contentType, authoritative);
+    desiredRate = playerMode === "live" ? 1 : context.playback.rate;
+    video.playbackRate = desiredRate;
     if (!captionLanguageUserSelected) selectedCaptionLanguage = context.playback.captions.language || selectedCaptionLanguage;
     subtitleSize = context.playback.captions.style.fontSizePx;
     applyCaptionPreferences(context.playback.captions);
@@ -542,6 +559,60 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
       document.documentElement.classList.add("ytze-idle");
     }, 2600);
   };
+  const hideControls = () => {
+    clearTimeout(idleTimer);
+    host.classList.remove("visible");
+    document.documentElement.classList.add("ytze-idle");
+  };
+  const nativeLivePlayback = () => video.duration === Infinity
+    || document.querySelector(".html5-video-player")?.classList.contains("ytp-live") === true;
+  const liveSeekRange = () => {
+    if (!video.seekable.length) return null;
+    const seekableIndex = video.seekable.length - 1;
+    const start = video.seekable.start(seekableIndex);
+    const end = video.seekable.end(seekableIndex);
+    let bufferedEnd: number | null = null;
+    for (let index = 0; index < video.buffered.length; index++) {
+      const candidate = video.buffered.end(index);
+      if (video.buffered.start(index) <= end && candidate >= start) bufferedEnd = Math.max(bufferedEnd ?? start, candidate);
+    }
+    observedLivePlayableEnd = Math.max(observedLivePlayableEnd, video.currentTime);
+    const range = playableLiveRange(start, end, video.currentTime, bufferedEnd, observedLivePlayableEnd);
+    if (range) observedLivePlayableEnd = Math.max(observedLivePlayableEnd, range.end);
+    return range;
+  };
+  const applyPlayerMode = (mode: EmbeddedPlayerMode) => {
+    if (playerMode === mode) return;
+    playerMode = mode;
+    host.classList.toggle("mode-live", mode === "live");
+    host.classList.toggle("mode-shorts", mode === "shorts");
+    liveEdgeElement.hidden = mode !== "live";
+    if (mode === "live") {
+      desiredRate = 1;
+      video.playbackRate = 1;
+      setCaptionMenuOpen(false);
+    } else {
+      desiredRate = playbackSettings().rate;
+      video.playbackRate = desiredRate;
+    }
+  };
+  const setContentType = (type: ContentType, authoritative = true) => {
+    requestedPlayerMode = type === "livestream" ? "live" : type === "short" ? "shorts" : "standard";
+    contentTypeAuthoritative = authoritative;
+    refreshPlayerMode();
+    if (requestedPlayerMode === "shorts") {
+      setCaptionMenuOpen(false);
+      (shadow.activeElement as HTMLElement | null)?.blur?.();
+      hideControls();
+    }
+  };
+  const refreshPlayerMode = () => applyPlayerMode(resolveEmbeddedPlayerMode(requestedPlayerMode, contentTypeAuthoritative, nativeLivePlayback()));
+  const goLive = () => {
+    const range = liveSeekRange();
+    if (range) video.currentTime = Math.max(range.start, range.end - .1);
+    void video.play().catch(() => {});
+    showControls();
+  };
   const togglePlay = () => video.paused ? video.play().catch(() => {}) : video.pause();
   const toggleFullscreen = () => {
     const safariVideo = video as HTMLVideoElement & {
@@ -591,11 +662,20 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   };
   const executeCommand = async (command: EnhancePlayerCommand) => {
     const payload = command.payload as Record<string, any>;
+    if (playerMode === "live" && command.command === "set-playback-rate") {
+      return { ok: false, error: "set-playback-rate is unavailable for livestreams", state: playerState() };
+    }
+    if (playerMode === "live" && (command.command === "seek-by" || command.command === "seek-to") && !liveSeekRange()) {
+      return { ok: false, error: `${command.command} is unavailable without a DVR window`, state: playerState() };
+    }
     if (command.command === "play") await video.play();
     else if (command.command === "pause") video.pause();
     else if (command.command === "toggle-play") await (video.paused ? video.play() : Promise.resolve(video.pause()));
     else if (command.command === "seek-by") seekBy(Number(payload.seconds));
-    else if (command.command === "seek-to") video.currentTime = Math.min(Math.max(0, Number(payload.seconds)), video.duration || Infinity);
+    else if (command.command === "seek-to") {
+      const range = playerMode === "live" ? liveSeekRange() : null;
+      video.currentTime = Math.min(Math.max(range?.start ?? 0, Number(payload.seconds)), range?.end ?? (video.duration || Infinity));
+    }
     else if (command.command === "set-volume") { video.volume = Number(payload.volume); video.muted = false; }
     else if (command.command === "set-muted") video.muted = Boolean(payload.enabled);
     else if (command.command === "toggle-muted") video.muted = !video.muted;
@@ -612,8 +692,18 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     return { ok: true, state: playerState() };
   };
   const update = () => {
+    refreshPlayerMode();
+    if (playerMode === "shorts" && video.videoWidth > 0 && video.videoHeight > 0) {
+      const stage = containedMediaRect(video.getBoundingClientRect(), video.videoWidth, video.videoHeight);
+      host.style.setProperty("--ytze-short-left", `${Math.max(0, stage.x)}px`);
+      host.style.setProperty("--ytze-short-right", `${Math.max(0, innerWidth - stage.x - stage.width)}px`);
+    }
+    const liveRange = playerMode === "live" ? liveSeekRange() : null;
     const duration = Number.isFinite(video.duration) ? video.duration : 0;
-    const fraction = duration ? Math.min(1, Math.max(0, video.currentTime / duration)) : 0;
+    const timeline = playerTimeline(video.currentTime, video.duration, liveRange);
+    const timelineStart = timeline.start;
+    const timelineDuration = timeline.length;
+    const fraction = timeline.fraction;
     if (!scrubbing) {
       played.style.width = `${fraction * 100}%`;
       knob.style.left = `${fraction * 100}%`;
@@ -621,8 +711,15 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     }
     let bufferedEnd = 0;
     for (let index = 0; index < video.buffered.length; index++) if (video.buffered.start(index) <= video.currentTime + .2) bufferedEnd = Math.max(bufferedEnd, video.buffered.end(index));
-    buffered.style.width = `${duration ? Math.min(100, bufferedEnd / duration * 100) : 0}%`;
+    buffered.style.width = `${timelineDuration ? Math.min(100, Math.max(0, (bufferedEnd - timelineStart) / timelineDuration * 100)) : 0}%`;
     time.textContent = `${formatClock(video.currentTime).replace(/-/g, ":")} / ${formatClock(duration).replace(/-/g, ":")}`;
+    const liveDelay = timeline.liveDelay;
+    const atLiveEdge = liveDelay != null && liveDelay <= 2;
+    liveEdgeElement.classList.toggle("active", atLiveEdge);
+    liveEdgeElement.setAttribute("aria-label", atLiveEdge ? t("live") : t("goLive"));
+    liveEdgeElement.title = atLiveEdge ? t("live") : liveDelay == null ? t("goLive") : `${t("goLive")} (−${formatClock(liveDelay).replace(/-/g, ":")})`;
+    progress.classList.toggle("unavailable", playerMode === "live" && !liveRange);
+    progress.setAttribute("aria-disabled", String(playerMode === "live" && !liveRange));
     setPlayerIcon(play, video.paused ? PLAYER_ICONS.play : PLAYER_ICONS.pause);
     bigPlay.hidden = !video.paused || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA;
     setPlayerIcon(mute, video.muted || video.volume === 0 ? PLAYER_ICONS.muted : PLAYER_ICONS.volume);
@@ -640,24 +737,33 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     }
     emitState("timeupdate");
   };
-  const seekBy = (seconds: number) => { video.currentTime = Math.min(Math.max(0, video.currentTime + seconds), video.duration || Infinity); };
+  const seekBy = (seconds: number) => {
+    const range = playerMode === "live" ? liveSeekRange() : null;
+    video.currentTime = Math.min(Math.max(range?.start ?? 0, video.currentTime + seconds), range?.end ?? (video.duration || Infinity));
+  };
   const progressFraction = (clientX: number) => {
     const bounds = progress.getBoundingClientRect();
     return Math.min(1, Math.max(0, (clientX - bounds.left) / Math.max(1, bounds.width)));
   };
   const scrubTo = (clientX: number) => {
-    if (!Number.isFinite(video.duration) || video.duration <= 0) return;
+    const range = playerMode === "live" ? liveSeekRange() : null;
+    const duration = range ? range.end - range.start : video.duration;
+    if (!Number.isFinite(duration) || duration <= 0) return;
     const fraction = progressFraction(clientX);
-    video.currentTime = fraction * video.duration;
+    video.currentTime = (range?.start ?? 0) + fraction * duration;
     played.style.width = `${fraction * 100}%`;
     knob.style.left = `${fraction * 100}%`;
   };
   const showProgressTooltip = (clientX: number) => {
-    if (!Number.isFinite(video.duration) || video.duration <= 0) return;
+    const range = playerMode === "live" ? liveSeekRange() : null;
+    const duration = range ? range.end - range.start : video.duration;
+    if (!Number.isFinite(duration) || duration <= 0) return;
     const fraction = progressFraction(clientX);
-    const seconds = fraction * video.duration;
+    const seconds = (range?.start ?? 0) + fraction * duration;
     tooltip.style.left = `${fraction * 100}%`;
-    hoverTime.textContent = formatClock(seconds).replace(/-/g, ":");
+    hoverTime.textContent = range
+      ? `−${formatClock(Math.max(0, range.end - seconds)).replace(/-/g, ":")}`
+      : formatClock(seconds).replace(/-/g, ":");
     const activeChapter = [...(bridgeContext?.playback.chapters ?? [])].reverse().find((item) => item.start <= seconds);
     chapter.textContent = activeChapter?.title ?? "";
     chapter.hidden = !activeChapter;
@@ -683,6 +789,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     }
     if (event.altKey || event.ctrlKey || event.metaKey || isEditableShortcutTarget(event.target)) return;
     const key = event.key.toLowerCase();
+    if (playerMode === "live" && (key === "," || key === ".")) return;
     const handled = [" ", "k", "j", "l", "arrowleft", "arrowright", "arrowup", "arrowdown", "m", "s", "f", "c", "+", "=", "-", "_", ",", "."].includes(key) || (key === "t" && Boolean(bridgeContext)) || /^\d$/.test(key);
     if (!handled) return;
     event.preventDefault();
@@ -694,11 +801,23 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
       "+": "captions-larger", "=": "captions-larger", "-": "captions-smaller", _: "captions-smaller",
       ",": "previous-frame", ".": "next-frame",
     };
+    const shortcutAction = playerMode === "shorts" && key === "arrowup"
+      ? "previous-short"
+      : playerMode === "shorts" && key === "arrowdown"
+        ? "next-short"
+        : key === " " && playerMode === "live"
+          ? "toggle-play"
+          : actions[key] ?? (/^\d$/.test(key) ? "seek-percent" : "unknown");
     emitPlayerEvent("shortcut", {
-      key: event.key, code: event.code, action: actions[key] ?? (/^\d$/.test(key) ? "seek-percent" : "unknown"),
+      key: event.key, code: event.code, action: shortcutAction,
       repeat: event.repeat, modifiers: { alt: event.altKey, ctrl: event.ctrlKey, meta: event.metaKey, shift: event.shiftKey },
     });
     if (key === " ") {
+      if (playerMode === "live") {
+        if (!event.repeat) togglePlay();
+        update();
+        return;
+      }
       if (event.repeat || spaceHoldTimer || spaceHoldActive) return;
       spaceHoldTimer = window.setTimeout(() => {
         spaceHoldTimer = 0;
@@ -712,6 +831,8 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     else if (key === "l") seekBy(10);
     else if (key === "arrowleft") { seekBy(-playbackSettings().keyboardSeekSeconds); say(`−${playbackSettings().keyboardSeekSeconds} s`); }
     else if (key === "arrowright") { seekBy(playbackSettings().keyboardSeekSeconds); say(`+${playbackSettings().keyboardSeekSeconds} s`); }
+    else if (key === "arrowup" && playerMode === "shorts") void callApi(ext.runtime, "sendMessage", { type: "ytze-player-page-shortcut", key: "shorts-prev" }).catch(() => {});
+    else if (key === "arrowdown" && playerMode === "shorts") void callApi(ext.runtime, "sendMessage", { type: "ytze-player-page-shortcut", key: "shorts-next" }).catch(() => {});
     else if (key === "arrowup") { video.volume = Math.min(1, video.volume + 0.05); video.muted = false; say(`${Math.round(video.volume * 100)}%`); }
     else if (key === "arrowdown") { video.volume = Math.max(0, video.volume - 0.05); say(`${Math.round(video.volume * 100)}%`); }
     else if (key === "m") video.muted = !video.muted;
@@ -723,13 +844,14 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     else if (key === "f") toggleFullscreen();
     else if (key === ",") { video.pause(); seekBy(-frameDuration()); say(t("oneFrameBack")); }
     else if (key === ".") { video.pause(); seekBy(frameDuration()); say(t("oneFrameForward")); }
-    else if (/^\d$/.test(key) && video.duration) video.currentTime = Number(key) / 10 * video.duration;
+    else if (/^\d$/.test(key) && playerMode !== "live" && video.duration) video.currentTime = Number(key) / 10 * video.duration;
     update();
   };
   const onKeyUp = (event: KeyboardEvent) => {
     if (event.code !== "Space" || isEditableShortcutTarget(event.target)) return;
     event.preventDefault();
     event.stopImmediatePropagation();
+    if (playerMode === "live") return;
     if (spaceHoldTimer) {
       clearTimeout(spaceHoldTimer);
       spaceHoldTimer = 0;
@@ -752,6 +874,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
 
   play.addEventListener("click", togglePlay, { signal });
   bigPlay.addEventListener("click", togglePlay, { signal });
+  liveEdgeElement.addEventListener("click", goLive, { signal });
   progress.addEventListener("pointerdown", (event) => { scrubbing = true; progress.setPointerCapture(event.pointerId); scrubTo(event.clientX); showProgressTooltip(event.clientX); }, { signal });
   progress.addEventListener("pointermove", (event) => { showProgressTooltip(event.clientX); if (scrubbing) scrubTo(event.clientX); }, { signal });
   progress.addEventListener("pointerup", (event) => { scrubbing = false; progress.releasePointerCapture(event.pointerId); }, { signal });
@@ -775,10 +898,13 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     if (captionMenuOpen && !event.composedPath().includes(captionMenuWrap)) setCaptionMenuOpen(false);
   }, { capture: true, signal });
   document.addEventListener("mousemove", showControls, { passive: true, signal });
-  video.addEventListener("play", () => { showControls(); applyPreferredQuality(); emitState("play", true); }, { signal });
-  video.addEventListener("pause", () => { showControls(); emitState("pause", true); }, { signal });
+  video.addEventListener("play", () => { if (playerMode !== "shorts") showControls(); applyPreferredQuality(); emitState("play", true); }, { signal });
+  video.addEventListener("pause", () => { if (playerMode !== "shorts") showControls(); emitState("pause", true); }, { signal });
   video.addEventListener("volumechange", () => emitState("volumechange", true), { signal });
-  video.addEventListener("loadedmetadata", () => { if (Math.abs(video.playbackRate - desiredRate) > .001) video.playbackRate = desiredRate; }, { signal });
+  video.addEventListener("loadedmetadata", () => {
+    refreshPlayerMode();
+    if (Math.abs(video.playbackRate - desiredRate) > .001) video.playbackRate = desiredRate;
+  }, { signal });
   video.addEventListener("ratechange", () => {
     if (!spaceHoldActive && Math.abs(video.playbackRate - desiredRate) > .001) queueMicrotask(() => { if (!spaceHoldActive) video.playbackRate = desiredRate; });
     emitState("ratechange", true);
@@ -793,13 +919,13 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   const interval = window.setInterval(update, 250);
   qualityInterval = window.setInterval(applyPreferredQuality, 5_000);
   if (video.requestVideoFrameCallback) frameCallback = video.requestVideoFrameCallback(sampleFrames);
-  desiredRate = playbackSettings().rate;
+  refreshPlayerMode();
+  desiredRate = nativeLivePlayback() ? 1 : playbackSettings().rate;
   video.playbackRate = desiredRate;
   applyCaptionPreferences(playbackSettings().captions);
   renderCaptionLanguageMenu();
   scheduleCaptionDefaults(800);
   const removeLandscapeFullscreen = installLandscapeFullscreen(video);
-  showControls();
   applyPreferredQuality();
   update();
   emitPlayerEvent("ready", { state: playerState() });
@@ -807,6 +933,18 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     capture: requestCapture,
     applyContext,
     command: executeCommand,
+    setMode: (mode: EmbeddedPlayerMode) => {
+      requestedPlayerMode = mode === "live" || mode === "shorts" ? mode : "standard";
+      contentTypeAuthoritative = false;
+      refreshPlayerMode();
+      if (requestedPlayerMode === "shorts") {
+        setCaptionMenuOpen(false);
+        (shadow.activeElement as HTMLElement | null)?.blur?.();
+        hideControls();
+      } else showControls();
+      update();
+    },
+    setContentType,
     setHidden: (hidden: boolean) => host.classList.toggle("capture-hidden", hidden),
     destroy: () => {
       clearInterval(interval);
@@ -892,8 +1030,13 @@ addApiListener(ext?.runtime?.onMessage, (message: any, _sender: any, sendRespons
   }
   if (message?.type === "ytze-apply-context" && playerController) {
     const context = validateEnhanceContext(message.context);
-    if (context && context.video.id === youtubeVideoId(location.href)) playerController.applyContext(context);
+    if (context && context.video.id === youtubeVideoId(location.href)) playerController.applyContext(context, message.contentTypeAuthoritative === true);
     respond({ ok: Boolean(context) });
+  }
+  if (message?.type === "ytze-apply-player-mode" && playerController) {
+    const mode: EmbeddedPlayerMode = message.mode === "live" || message.mode === "shorts" ? message.mode : "standard";
+    playerController.setMode(mode);
+    respond({ ok: true, mode });
   }
   if (message?.type === "ytze-request-context" && window.top === window && activeInstanceUrl && configuredPageMatches(location.href, activeInstanceUrl)) {
     document.dispatchEvent(new Event(ENHANCE_BRIDGE_EVENTS.ready));
@@ -925,8 +1068,10 @@ addApiListener(ext?.runtime?.onMessage, (message: any, _sender: any, sendRespons
     if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
     respond({ ok: true });
   }
-  if (message?.type === "ytze-dispatch-page-shortcut" && window.top === window && message.key === "t") {
-    document.dispatchEvent(new KeyboardEvent("keydown", { key: "t", code: "KeyT", bubbles: true }));
+  if (message?.type === "ytze-dispatch-page-shortcut" && window.top === window && ["t", "shorts-prev", "shorts-next"].includes(message.key)) {
+    const key = message.key === "shorts-prev" ? "ArrowUp" : message.key === "shorts-next" ? "ArrowDown" : "t";
+    const code = key === "ArrowUp" ? "ArrowUp" : key === "ArrowDown" ? "ArrowDown" : "KeyT";
+    document.dispatchEvent(new KeyboardEvent("keydown", { key, code, bubbles: true }));
     respond({ ok: true });
   }
   if (message?.type === "ytze-dispatch-player-event" && window.top === window) {
@@ -993,9 +1138,15 @@ const CONTROL_STYLES = `
   .big-play svg { width: 30px; height: 30px; }
   .big-play[hidden] { display: none; }
   .time { margin-left: 8px; white-space: nowrap; font-size: 12.5px; font-variant-numeric: tabular-nums; color: rgba(255,255,255,.95); }
+  .live-edge { width: auto; min-width: 68px; padding: 0 10px; gap: 7px; color: rgba(255,255,255,.78); font-size: 11px; font-weight: 750; letter-spacing: .04em; }
+  .live-edge.active { color: #fff; background: rgba(242,41,58,.24); }
+  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: #f2293a; box-shadow: 0 0 0 0 rgba(242,41,58,.7); }
+  .live-edge.active .live-dot { animation: live-pulse 1.6s ease-out infinite; }
+  @keyframes live-pulse { 70% { box-shadow: 0 0 0 7px rgba(242,41,58,0); } 100% { box-shadow: 0 0 0 0 rgba(242,41,58,0); } }
   .spacer { flex: 1; }
   input[type=range] { accent-color: #fff; cursor: pointer; }
   .progress { position: relative; height: 16px; display: flex; align-items: center; cursor: pointer; touch-action: none; }
+  .progress.unavailable { opacity: .35; pointer-events: none; }
   .progress-track { position: relative; width: 100%; height: 3px; border-radius: 2px; background: rgba(255,255,255,.25); overflow: hidden; transition: height .12s ease; }
   .progress:hover .progress-track, .progress:focus-visible .progress-track { height: 5px; }
   .buffered, .played { position: absolute; inset: 0 auto 0 0; }
@@ -1029,6 +1180,21 @@ const CONTROL_STYLES = `
   .caption-option-status { display: inline-flex; align-items: center; justify-content: flex-end; min-width: 14px; font-size: 14px; }
   .toast { position: absolute; left: 50%; bottom: 74px; transform: translate(-50%, 5px) scale(.94); padding: 7px 10px; border-radius: 999px; background: rgba(10,10,10,.62); color: #fff; backdrop-filter: blur(7px); opacity: 0; transition: .18s ease; max-width: 80vw; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px; font-weight: 650; }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
+  :host(.mode-live) .controls { background: linear-gradient(to top, rgba(8,8,10,.94), rgba(8,8,10,.48) 62%, transparent); }
+  :host(.mode-live) .time { display: none; }
+  :host(.mode-live) .played, :host(.mode-live) .knob { background: #f2293a; }
+  :host(.mode-shorts) .controls { left: calc(var(--ytze-short-left, 0px) + 7px); right: calc(var(--ytze-short-right, 0px) + 7px); bottom: calc(7px + env(safe-area-inset-bottom, 0px)); padding: 38px max(9px, env(safe-area-inset-right, 0px)) max(8px, env(safe-area-inset-bottom, 0px)) max(9px, env(safe-area-inset-left, 0px)); border-radius: 18px; background: linear-gradient(to top, rgba(8,8,10,.92), rgba(8,8,10,.46) 64%, transparent); }
+  :host(.mode-shorts) .buttons { gap: 7px; }
+  :host(.mode-shorts) .buttons > button, :host(.mode-shorts) .volume-wrap > button, :host(.mode-shorts) .caption-menu-wrap > button { width: 40px; height: 40px; border-radius: 50%; background: rgba(20,20,24,.58); backdrop-filter: blur(8px); }
+  :host(.mode-shorts) .buttons > button:hover, :host(.mode-shorts) .volume-wrap > button:hover, :host(.mode-shorts) .caption-menu-wrap > button:hover { background: rgba(255,255,255,.2); }
+  :host(.mode-shorts) .volume, :host(.mode-shorts) .time, :host(.mode-shorts) .pip { display: none; }
+  :host(.mode-shorts) .progress { height: 12px; }
+  :host(.mode-shorts) .progress-track { height: 2px; }
+  :host(.mode-shorts) .progress:hover .progress-track, :host(.mode-shorts) .progress:focus-visible .progress-track { height: 4px; }
+  :host(.mode-shorts) .caption-menu { bottom: 48px; max-height: min(260px, 58vh); }
+  :host(.mode-shorts) .toast { bottom: 78px; }
+  :host(.mode-shorts) .big-play { width: 58px; height: 58px; background: rgba(12,12,15,.58); backdrop-filter: blur(8px); }
+  :host(.mode-shorts):not(.visible) .big-play { display: none; }
   @media (max-width: 480px) { .time, .pip { display: none; } .buttons { gap: 1px; } button { width: 34px; } .controls { padding-inline: 8px; } }
-  @media (prefers-reduced-motion: reduce) { .controls, .toast, .knob, .progress-track { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { .controls, .toast, .knob, .progress-track { transition: none; } .live-edge.active .live-dot { animation: none; } }
 `;

@@ -83,6 +83,8 @@
   "cinemaModeShortcut": { "message": "Cinema mode (T)" },
   "pictureInPicture": { "message": "Picture in picture" },
   "fullscreen": { "message": "Fullscreen" },
+  "live": { "message": "LIVE" },
+  "goLive": { "message": "Go live" },
   "captionsUnavailable": { "message": "Captions unavailable" },
   "invalidCaptionLanguage": { "message": "Invalid caption language" },
   "pipUnavailable": { "message": "Picture in picture unavailable" },

@@ -11,6 +11,7 @@ export const DEFAULT_SETTINGS = {
 };
 
 export type Settings = typeof DEFAULT_SETTINGS;
+export type EmbeddedPlayerMode = "standard" | "shorts" | "live";
 
 const VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
 const CHANNEL_ID = /^UC[A-Za-z0-9_-]{22}$/;
@@ -46,6 +47,41 @@ function withInstancePath(instanceUrl: string, path: string, search = ""): strin
 export function hasNoRedirectMarker(input: string): boolean {
   const url = youtubeUrl(input);
   return Boolean(url?.hash.slice(1).split("&").includes(YT_NO_REDIRECT_MARKER));
+}
+
+export function embeddedPlayerModeForPage(input: string): Exclude<EmbeddedPlayerMode, "live"> {
+  try {
+    return /\/shorts(?:\/|$)/.test(new URL(input).pathname) ? "shorts" : "standard";
+  } catch { return "standard"; }
+}
+
+export function resolveEmbeddedPlayerMode(requested: EmbeddedPlayerMode, authoritative: boolean, nativeLive: boolean): EmbeddedPlayerMode {
+  return requested === "live" || (!authoritative && nativeLive) ? "live" : requested;
+}
+
+export function playerTimeline(currentTime: number, duration: number, liveRange?: { start: number; end: number } | null) {
+  const finiteDuration = Number.isFinite(duration) && duration > 0 ? duration : 0;
+  const live = liveRange && Number.isFinite(liveRange.start) && Number.isFinite(liveRange.end) && liveRange.end > liveRange.start
+    ? liveRange : null;
+  const start = live?.start ?? 0;
+  const end = live?.end ?? finiteDuration;
+  const length = Math.max(0, end - start);
+  const fraction = length ? Math.min(1, Math.max(0, (currentTime - start) / length)) : 0;
+  return { start, end, length, fraction, liveDelay: live ? Math.max(0, live.end - currentTime) : null };
+}
+
+export function playableLiveRange(
+  seekableStart: number,
+  seekableEnd: number,
+  currentTime: number,
+  bufferedEnd: number | null,
+  observedPlayableEnd: number,
+  safetySeconds = .5,
+) {
+  if (!Number.isFinite(seekableStart) || !Number.isFinite(seekableEnd) || seekableEnd <= seekableStart) return null;
+  const buffered = bufferedEnd != null && Number.isFinite(bufferedEnd) ? bufferedEnd - Math.max(0, safetySeconds) : seekableStart;
+  const playableEnd = Math.min(seekableEnd, Math.max(currentTime, observedPlayableEnd, buffered));
+  return playableEnd > seekableStart ? { start: seekableStart, end: playableEnd } : null;
 }
 
 export function parseTimestamp(value: string | null): number {
