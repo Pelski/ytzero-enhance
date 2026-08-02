@@ -13,6 +13,8 @@ for (const target of targets) {
       "https://www.youtube.com/*",
       "https://www.youtube-nocookie.com/*",
     ]);
+    expect(manifest.content_scripts[0].css).toBeUndefined();
+    expect(manifest.commands["capture-frame"].suggested_key.mac).toBe("MacCtrl+Shift+S");
   });
 }
 
@@ -28,4 +30,15 @@ test("paired instances produce unique, exact-origin dynamic matches", () => {
     "http://localhost:5173/*",
     "https://video.example/*",
   ]);
+});
+
+test("pairing requests optional host access synchronously from the popup click", async () => {
+  const popup = await Bun.file(new URL("../src/popup.ts", import.meta.url)).text();
+  const handler = popup.slice(
+    popup.indexOf("function beginPairingFromUserGesture"),
+    popup.indexOf('for (const id of ["pair-first", "pair-another"])'),
+  );
+  expect(handler).toContain('callApi<boolean>(ext.permissions, "request"');
+  expect(handler).not.toContain("await ");
+  expect(popup.match(/ext\.permissions, "request"/g)).toHaveLength(1);
 });

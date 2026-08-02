@@ -32,6 +32,7 @@ The sibling `../ytzero` repository owns the application-side bridge. Its relevan
 - `inferInstanceUrl()` must retain support for an installation prefix such as `/apps/ytzero`, including when a reverse proxy exposes the app below a path.
 - Do not trust configuration solely because an element has the expected ID. Always validate format, version, bridge version, events, and field shapes through the contract helpers.
 - Pairing an instance requests optional host access only after the user initiates the action. Keep host permissions and origin matching as narrow as the browser APIs allow.
+- Firefox loses the user-action status after an awaited promise. Inspect and validate the active pairing candidate while the popup opens, then invoke `permissions.request()` synchronously from the Connect button handler before awaiting any pairing work.
 - Static content scripts run only on the required embedded-player hosts. Register `content.js` dynamically for the exact origins of paired instances and unregister it when the last instance on an origin is removed; never restore a static `<all_urls>` match.
 - Do not add the `tabs` permission: `activeTab`, paired-origin access and the fixed player-host permissions cover the current tab operations.
 - Multiple instances are supported. Each page uses its matching instance/profile; only supported video-link redirects use the default instance.
@@ -56,12 +57,14 @@ The sibling `../ytzero` repository owns the application-side bridge. Its relevan
 - The `T` shortcut may request YT Zero theatre/cinema behavior on the containing application page even though there is no cinema button in the embedded controls.
 - Keep keyboard shortcuts usable without focusing the embedded iframe first, subject to editable-target guards.
 - Native upstream UI suppression must preserve video, captions, loading, and advertisement layers and tolerate both classic and experimental controls.
+- Do not declare `player.css` as a static manifest content-script stylesheet. The background must validate the exact embedded frame and paired parent tab before inserting it with `scripting.insertCSS`; unpaired embeds must receive neither the stylesheet nor custom control DOM.
 
 ## Extension lifecycle and cross-browser behavior
 
 - Treat an invalidated extension context as a teardown signal. Content scripts from an older extension build must remove controls/listeners instead of continuing with a dead runtime.
 - Keep Chrome callback APIs and Firefox promise APIs behind the helpers in `src/webext.ts`.
 - Messages crossing page/extension isolated worlds use validated JSON-string details. Preserve synchronous ownership/claim behavior for screenshot events.
+- Keep the macOS frame-capture command on physical `Control+Shift+S` (`MacCtrl+Shift+S` in manifests), not `Option+Shift+S`; Option-based letter shortcuts intercept characters such as Polish `Ś` in editable fields.
 - Avoid adding remotely hosted executable code; store packages must contain reviewable code.
 - Keep Firefox `browser_specific_settings.gecko.data_collection_permissions.required` set to `["none"]`. AMO requires the declaration even though the extension does not collect or transmit data; the build check enforces it.
 - Keep Firefox `strict_min_version` at 128 or newer while the manifest uses `optional_host_permissions`; this applies to desktop and the inherited Android minimum.

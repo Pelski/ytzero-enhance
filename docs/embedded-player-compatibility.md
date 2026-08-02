@@ -32,6 +32,8 @@ Issue tracker status reviewed on July 25, 2026. All public issues in the YT Zero
 
 When control replacement is active, `controls=0` and `disablekb=1` are only additional URL hints; the extension does not depend on the player honoring them. CSS running inside the iframe hides direct `.html5-video-player` layers except the video container, captions, loading indicator, and advertisement labels and controls. Separate selectors cover both classic UI portals and newer variants (`ytwPlayer…`, `player-controls-*`, settings menus, and fullscreen recommendations), including elements mounted outside the usual player layer tree.
 
+The player stylesheet is not a static manifest injection. Before inserting it or creating custom controls, the background validates the exact embedded frame and confirms that its parent tab matches an enabled paired instance. Ordinary embeds on unrelated sites remain untouched.
+
 ### Content-specific control modes
 
 YT Zero supplies the semantic presentation through validated `context.video.contentType`. The extension applies `default`, `short`, and `livestream` changes in place. Older application builds fall back to the `/shorts` route and native active-broadcast detection; aspect ratio is never used to classify content.

@@ -127,8 +127,16 @@ ext.runtime.onMessage.addListener((message: any, sender: any, sendResponse: (val
     void routeBridgeContext(message, sender).then(sendResponse, (error) => sendResponse({ ok: false, error: error.message }));
     return true;
   }
-  if (message?.type === "ytze-player-ready") {
-    void initializePlayerFrame(message, sender).then(sendResponse, (error) => sendResponse({ ok: false, error: error.message }));
+  if (message?.type === "ytze-authorize-player-frame") {
+    void authorizePlayerFrame(message, sender).then(sendResponse, (error) => sendResponse({ ok: false, authorized: false, error: error.message }));
+    return true;
+  }
+  if (message?.type === "ytze-player-initialized") {
+    void requestPlayerContext(message, sender).then(sendResponse, (error) => sendResponse({ ok: false, error: error.message }));
+    return true;
+  }
+  if (message?.type === "ytze-remove-player-styles") {
+    void removePlayerStyles(message, sender).then(sendResponse, (error) => sendResponse({ ok: false, error: error.message }));
     return true;
   }
   if (message?.type === "ytze-apply-preferred-quality") {
@@ -169,19 +177,40 @@ ext.runtime.onMessage.addListener((message: any, sender: any, sendResponse: (val
   }
 });
 
-async function initializePlayerFrame(message: any, sender: any) {
+async function pairedPlayerFrame(message: any, sender: any) {
   if (sender.tab?.id == null || sender.frameId == null || !youtubeFrameMatches(sender.url, message.videoId)) {
     throw new Error(t("invalidPlayerFrame"));
   }
-  const instances = await pairedInstances();
+  const [instances, local] = await Promise.all([pairedInstances(), settings()]);
   const paired = pairedInstanceForPage(instances, sender.tab.url || "");
+  if (!paired || paired.blocked || paired.configuration.enabled !== true || !local.enhancePlayer) throw new Error(t("unpairedPage"));
+  return { paired, tabId: sender.tab.id, frameId: sender.frameId };
+}
+
+async function authorizePlayerFrame(message: any, sender: any) {
+  const frame = await pairedPlayerFrame(message, sender);
+  await callApi(ext.scripting, "insertCSS", {
+    target: { tabId: frame.tabId, frameIds: [frame.frameId] },
+    files: ["player.css"],
+  });
   const live = await detectLivePlayerFrame(sender);
-  const mode = live ? "live" : paired ? embeddedPlayerModeForPage(sender.tab.url || "") : "standard";
-  await Promise.all([
-    callApi(ext.tabs, "sendMessage", sender.tab.id, { type: "ytze-apply-player-mode", mode }, { frameId: sender.frameId }).catch(() => {}),
-    callApi(ext.tabs, "sendMessage", sender.tab.id, { type: "ytze-request-context" }, { frameId: 0 }).catch(() => {}),
-  ]);
-  return { ok: true, mode };
+  const mode = live ? "live" : embeddedPlayerModeForPage(sender.tab.url || "");
+  return { ok: true, authorized: true, mode };
+}
+
+async function requestPlayerContext(message: any, sender: any) {
+  const frame = await pairedPlayerFrame(message, sender);
+  await callApi(ext.tabs, "sendMessage", frame.tabId, { type: "ytze-request-context" }, { frameId: 0 }).catch(() => {});
+  return { ok: true };
+}
+
+async function removePlayerStyles(message: any, sender: any) {
+  if (sender.tab?.id == null || sender.frameId == null || !youtubeFrameMatches(sender.url, message.videoId)) throw new Error(t("invalidPlayerFrame"));
+  await callApi(ext.scripting, "removeCSS", {
+    target: { tabId: sender.tab.id, frameIds: [sender.frameId] },
+    files: ["player.css"],
+  }).catch(() => {});
+  return { ok: true };
 }
 
 async function detectLivePlayerFrame(sender: any): Promise<boolean> {

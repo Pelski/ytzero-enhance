@@ -17,6 +17,15 @@ const enhance = document.querySelector<HTMLInputElement>('input[name="enhancePla
 const redirectCurrent = document.querySelector<HTMLButtonElement>("#redirect-current")!;
 let defaultInstance: PairedInstance | null = null;
 let activeRedirect: { tabId: number; url: string } | null = null;
+type PairingCandidate = {
+  tabId: number;
+  instanceUrl: string;
+  name: string;
+  configuration: PairedInstance["configuration"];
+  permission: string | null;
+};
+let pairingCandidate: PairingCandidate | null = null;
+let pairingCandidateError: Error | null = null;
 
 function instanceAddress(value: string): string {
   try {
@@ -74,39 +83,50 @@ async function load() {
   await loadActiveRedirect();
 }
 
-async function pairActiveTab(button: HTMLButtonElement, output: HTMLOutputElement) {
-  button.disabled = true;
-  output.className = "";
-  output.textContent = t("findingSettings");
+async function inspectActiveTabForPairing(): Promise<PairingCandidate> {
+  const tabs = await callApi<any[]>(ext.tabs, "query", { active: true, currentWindow: true });
+  const tab = tabs[0];
+  if (tab?.id == null || !tab.url) throw new Error(t("openPageFirst"));
+  const results = await callApi<any[]>(ext.scripting, "executeScript", {
+    target: { tabId: tab.id },
+    func: () => ({
+      configuration: document.body?.querySelector("#ytzero-enhance-configuration")?.textContent ?? "",
+      appName: document.querySelector<HTMLMetaElement>('meta[name="application-name"]')?.content ?? "",
+      manifestUrl: document.querySelector<HTMLLinkElement>('link[rel="manifest"]')?.href ?? "",
+    }),
+  });
+  const raw = results?.[0]?.result?.configuration;
+  if (!raw) throw new Error(t("settingsNotReady"));
+  const validation = parseEmbeddedConfigurationText(raw);
+  if (!validation.ok) throw new Error(validation.diagnostic);
+  const instanceUrl = inferInstanceUrl(tab.url, results?.[0]?.result?.manifestUrl);
+  if (!instanceUrl) throw new Error(t("openSpecificPage"));
+  return {
+    tabId: tab.id,
+    instanceUrl,
+    name: friendlyInstanceName(results?.[0]?.result?.appName || "", instanceUrl),
+    configuration: validation.value,
+    permission: hostPermissionPattern(instanceUrl),
+  };
+}
+
+async function finishPairing(
+  candidate: PairingCandidate,
+  permissionRequest: Promise<boolean>,
+  button: HTMLButtonElement,
+  output: HTMLOutputElement,
+) {
   try {
-    const tabs = await callApi<any[]>(ext.tabs, "query", { active: true, currentWindow: true });
-    const tab = tabs[0];
-    if (tab?.id == null || !tab.url) throw new Error(t("openPageFirst"));
-    const results = await callApi<any[]>(ext.scripting, "executeScript", {
-      target: { tabId: tab.id },
-      func: () => ({
-        configuration: document.body?.querySelector("#ytzero-enhance-configuration")?.textContent ?? "",
-        appName: document.querySelector<HTMLMetaElement>('meta[name="application-name"]')?.content ?? "",
-        manifestUrl: document.querySelector<HTMLLinkElement>('link[rel="manifest"]')?.href ?? "",
-      }),
-    });
-    const raw = results?.[0]?.result?.configuration;
-    if (!raw) throw new Error(t("settingsNotReady"));
-    const validation = parseEmbeddedConfigurationText(raw);
-    if (!validation.ok) throw new Error(validation.diagnostic);
-    const instanceUrl = inferInstanceUrl(tab.url, results?.[0]?.result?.manifestUrl);
-    if (!instanceUrl) throw new Error(t("openSpecificPage"));
-    const permission = hostPermissionPattern(instanceUrl);
-    if (permission && ext.permissions && !await callApi<boolean>(ext.permissions, "request", { origins: [permission] })) throw new Error(t("permissionNeeded"));
+    if (!await permissionRequest) throw new Error(t("permissionNeeded"));
     const response = await callApi<any>(ext.runtime, "sendMessage", {
       type: "ytze-pair-instance",
-      url: instanceUrl,
-      name: friendlyInstanceName(results?.[0]?.result?.appName || "", instanceUrl),
-      configuration: validation.value,
+      url: candidate.instanceUrl,
+      name: candidate.name,
+      configuration: candidate.configuration,
     });
     if (!response?.ok) throw new Error(response?.error || t("pairFailed"));
     output.textContent = t("pairedReloading");
-    await callApi(ext.tabs, "reload", tab.id);
+    await callApi(ext.tabs, "reload", candidate.tabId);
     await load();
   } catch (error: any) {
     output.textContent = error?.message || String(error);
@@ -116,10 +136,38 @@ async function pairActiveTab(button: HTMLButtonElement, output: HTMLOutputElemen
   }
 }
 
+function beginPairingFromUserGesture(button: HTMLButtonElement, output: HTMLOutputElement) {
+  button.disabled = true;
+  output.className = "";
+  output.textContent = t("findingSettings");
+  if (!pairingCandidate) {
+    output.textContent = pairingCandidateError?.message || t("settingsNotReady");
+    output.className = "error";
+    button.disabled = false;
+    return;
+  }
+
+  // Firefox drops the user-action status after any awaited promise. Invoke the
+  // optional permission request synchronously from this click handler, then do
+  // the remaining asynchronous pairing work after its promise has been created.
+  const permissionRequest = pairingCandidate.permission && ext.permissions
+    ? callApi<boolean>(ext.permissions, "request", { origins: [pairingCandidate.permission] })
+    : Promise.resolve(true);
+  void finishPairing(pairingCandidate, permissionRequest, button, output);
+}
+
 for (const id of ["pair-first", "pair-another"]) {
   const button = document.querySelector<HTMLButtonElement>(`#${id}`)!;
-  button.addEventListener("click", () => void pairActiveTab(button, id === "pair-first" ? onboardingMessage : message));
+  button.disabled = true;
+  button.addEventListener("click", () => beginPairingFromUserGesture(button, id === "pair-first" ? onboardingMessage : message));
 }
+
+void inspectActiveTabForPairing()
+  .then((candidate) => { pairingCandidate = candidate; })
+  .catch((error) => { pairingCandidateError = error instanceof Error ? error : new Error(String(error)); })
+  .finally(() => {
+    for (const id of ["pair-first", "pair-another"]) document.querySelector<HTMLButtonElement>(`#${id}`)!.disabled = false;
+  });
 
 async function saveToggle(key: string, value: boolean) {
   await callApi(ext.storage.sync, "set", { [key]: value });

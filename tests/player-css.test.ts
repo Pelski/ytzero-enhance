@@ -13,6 +13,13 @@ test("replacement CSS structurally removes native player layers", () => {
   expect(css).toContain(":not([class*=\"ytp-ad-\"])");
 });
 
+test("player CSS is inserted only after the parent tab is authorized as paired", () => {
+  expect(background).toContain('message?.type === "ytze-authorize-player-frame"');
+  expect(background).toContain('ext.scripting, "insertCSS"');
+  expect(background.indexOf("await pairedPlayerFrame(message, sender)")).toBeLessThan(background.indexOf('ext.scripting, "insertCSS"'));
+  expect(content.indexOf('type: "ytze-authorize-player-frame"')).toBeLessThan(content.indexOf("playerController = enhanceYouTubePlayer(video)"));
+});
+
 test("replacement CSS covers both classic and experimental embedded controls", () => {
   expect(css).toContain(".ytp-chrome-bottom");
   expect(css).toContain(".ytwPlayerMiddleControlsHost");
@@ -88,7 +95,7 @@ test("live and short-form players receive purpose-built controls", () => {
   expect(content).toContain(":host(.mode-shorts) .controls");
   expect(content).toContain(":host(.mode-shorts) .volume");
   expect(content).toContain(":host(.mode-live) .time");
-  expect(background).toContain('"ytze-apply-player-mode"');
+  expect(background).toContain('"ytze-authorize-player-frame"');
   expect(background).toContain("embeddedPlayerModeForPage");
   expect(background).toContain("getVideoData?.()?.isLive");
   expect(content).toContain('"previous-short"');

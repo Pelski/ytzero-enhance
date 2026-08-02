@@ -12,6 +12,7 @@ let bridgeCleanup: (() => void) | null = null;
 let playerObserver: MutationObserver | null = null;
 let configurationObserver: MutationObserver | null = null;
 let extensionStatusObserver: MutationObserver | null = null;
+let playerBootToken = 0;
 let activeInstanceUrl = "";
 let lastEmbeddedConfigurationText = "";
 type OwnedIframeParameter = { original: string | null; applied: string };
@@ -85,6 +86,10 @@ function pageBridgeShouldBeActive() {
 }
 
 function shutdown(restoreEmbeds = false) {
+  playerBootToken++;
+  if (window.top !== window && playerController) {
+    void callApi(ext.runtime, "sendMessage", { type: "ytze-remove-player-styles", videoId: youtubeVideoId(location.href) }).catch(() => {});
+  }
   playerController?.destroy();
   playerController = null;
   bridgeCleanup?.();
@@ -113,15 +118,24 @@ function boot() {
     return;
   }
   if (!config.enhancePlayer || !remoteConfig?.enabled || !youtubeVideoId(location.href)) return;
+  const videoId = youtubeVideoId(location.href)!;
+  const token = ++playerBootToken;
+  void callApi<any>(ext.runtime, "sendMessage", { type: "ytze-authorize-player-frame", videoId }).then((authorization) => {
+    if (token !== playerBootToken || !authorization?.authorized || !config.enhancePlayer || !remoteConfig?.enabled) {
+      if (authorization?.authorized) void callApi(ext.runtime, "sendMessage", { type: "ytze-remove-player-styles", videoId }).catch(() => {});
+      return;
+    }
   const start = () => {
     const video = document.querySelector<HTMLVideoElement>("video.html5-main-video, video");
     if (!video || playerController) return;
     playerController = enhanceYouTubePlayer(video);
+    playerController.setMode(authorization.mode);
+    void callApi(ext.runtime, "sendMessage", { type: "ytze-player-initialized", videoId }).catch(() => {});
   };
   start();
   playerObserver = new MutationObserver(start);
   playerObserver.observe(document.documentElement, { childList: true, subtree: true });
-  void callApi(ext.runtime, "sendMessage", { type: "ytze-player-ready", videoId: youtubeVideoId(location.href) }).catch(() => {});
+  }).catch(() => {});
 }
 
 function markExtensionActiveWhenReady() {

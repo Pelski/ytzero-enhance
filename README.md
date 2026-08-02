@@ -18,10 +18,11 @@ Main project: [Pelski/ytzero](https://github.com/Pelski/ytzero)
 
 ## Install
 
-Install the Chromium release from the Chrome Web Store. For other browsers, use the [manual installation](#build-and-install-manually) instructions until their store listings are public.
+Install the extension from the Chrome Web Store or Firefox Add-ons. For other browsers, use the [manual installation](#build-and-install-manually) instructions until their store listings are public.
 
 <p align="center">
   <a href="https://chromewebstore.google.com/detail/yt-zero-enhance/dibdidnkdjnbnoicdmbklmmpchkfmmhd?hl=pl&amp;authuser=0"><img src="https://developer.chrome.com/static/docs/webstore/branding/image/iNEddTyWiMfLSwFD6qGq.png" height="58" alt="Available in the Chrome Web Store"></a>
+  <a href="https://addons.mozilla.org/en-US/firefox/addon/yt-zero-enhance/"><img src="https://blog.mozilla.org/addons/files/2020/04/get-the-addon-fx-apr-2020.svg" height="58" alt="Get the add-on for Firefox"></a>
 </p>
 
 <!--
@@ -30,7 +31,6 @@ corresponding listing is publicly available. Official artwork and its aspect
 ratio must not be modified.
 
 <p align="center">
-  <a href="FIREFOX_AMO_LISTING_URL"><img src="https://blog.mozilla.org/addons/files/2020/04/get-the-addon-fx-apr-2020.svg" height="58" alt="Get the add-on for Firefox"></a>
   <a href="EDGE_ADDONS_LISTING_URL"><img src="https://learn.microsoft.com/en-us/microsoft-edge/extensions/publish/add-ons-badge-images/microsoft-edge-add-ons-badge.png" height="58" alt="Get it from Microsoft Edge Add-ons"></a>
   <a href="APPLE_APP_STORE_LISTING_URL"><img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" height="58" alt="Download on the App Store"></a>
 </p>
@@ -87,7 +87,7 @@ Pair other instances in the same way. Each paired page uses its own active profi
 | `,` / `.` | Previous / next approximate frame |
 | `S` | Save the current frame |
 | `F` / `T` | Fullscreen / YT Zero theatre mode |
-| `Alt+Shift+S` | Capture the active embedded player |
+| `Alt+Shift+S` (`Control+Shift+S` on macOS) | Capture the active embedded player |
 | `Alt+Shift+Y` | Toggle redirects globally |
 
 ## Build and install manually
@@ -128,7 +128,7 @@ bun run check
 2. Select **Load Temporary Add-on**.
 3. Choose `dist/firefox/manifest.json` (or the Firefox ZIP created by `bun run package`).
 
-Firefox removes temporary add-ons when it restarts. A persistent installation requires a package signed by Mozilla; normal users should install the eventual AMO release.
+Firefox removes temporary add-ons when it restarts. For a persistent signed installation, use the [official Firefox Add-ons listing](https://addons.mozilla.org/en-US/firefox/addon/yt-zero-enhance/).
 
 ### Safari on macOS — quick temporary test
 
