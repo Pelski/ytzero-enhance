@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { containedMediaRect, embeddedPlayerModeForPage, hasNoRedirectMarker, isRedirectableYouTubeUrl, localContentUrl, localWatchUrl, parseTimestamp, playableLiveRange, playerTimeline, resolveEmbeddedPlayerMode, safeFilename, screenshotFilename, youtubePlaylistId, youtubeVideoId } from "../src/core";
+import { containedMediaRect, embeddedPlayerModeForPage, hasNoRedirectMarker, isPreviewEmbedUrl, isRedirectableYouTubeUrl, localContentUrl, localWatchUrl, parseTimestamp, playableLiveRange, playerTimeline, resolveEmbeddedPlayerMode, safeFilename, screenshotFilename, youtubePlaylistId, youtubeVideoId } from "../src/core";
 
 describe("YouTube URL mapping", () => {
   test.each([
@@ -50,6 +50,9 @@ test("embedded player modes and live timeline", () => {
   expect(resolveEmbeddedPlayerMode("standard", true, true)).toBe("standard");
   expect(resolveEmbeddedPlayerMode("shorts", true, true)).toBe("shorts");
   expect(resolveEmbeddedPlayerMode("standard", false, true)).toBe("live");
+  expect(resolveEmbeddedPlayerMode("preview", true, false)).toBe("preview");
+  expect(resolveEmbeddedPlayerMode("preview", true, true)).toBe("preview");
+  expect(resolveEmbeddedPlayerMode("preview", false, true)).toBe("preview");
   expect(playerTimeline(125, Infinity, { start: 100, end: 130 })).toEqual({
     start: 100, end: 130, length: 30, fraction: 5 / 6, liveDelay: 5,
   });
@@ -57,6 +60,14 @@ test("embedded player modes and live timeline", () => {
   expect(playableLiveRange(100, 140, 125, 132, 128)).toEqual({ start: 100, end: 131.5 });
   expect(playableLiveRange(100, 140, 125, null, 128)).toEqual({ start: 100, end: 128 });
   expect(playableLiveRange(100, 140, 135, 132, 128)).toEqual({ start: 100, end: 135 });
+});
+
+test("preview mode is recognized only on marked embedded player URLs", () => {
+  expect(isPreviewEmbedUrl("https://www.youtube.com/embed/dQw4w9WgXcQ?ytzero_preview=1")).toBe(true);
+  expect(isPreviewEmbedUrl("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?ytzero_preview=1")).toBe(true);
+  expect(isPreviewEmbedUrl("https://www.youtube.com/embed/dQw4w9WgXcQ?ytzero_preview=0")).toBe(false);
+  expect(isPreviewEmbedUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ&ytzero_preview=1")).toBe(false);
+  expect(isPreviewEmbedUrl("https://example.com/embed/dQw4w9WgXcQ?ytzero_preview=1")).toBe(false);
 });
 
 test("safe screenshot names", () => {

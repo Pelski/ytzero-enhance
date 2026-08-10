@@ -1,4 +1,4 @@
-import { containedMediaRect, DEFAULT_SETTINGS, embeddedPlayerModeForPage, EmbeddedPlayerMode, formatClock, normalizeSettings, playableLiveRange, playerTimeline, resolveEmbeddedPlayerMode, youtubeVideoId } from "./core";
+import { containedMediaRect, DEFAULT_SETTINGS, embeddedPlayerModeForPage, EmbeddedPlayerMode, formatClock, isPreviewEmbedUrl, normalizeSettings, playableLiveRange, playerTimeline, resolveEmbeddedPlayerMode, youtubeVideoId } from "./core";
 import { BridgeScreenshotRequest, claimScreenshotRequest, configuredPageMatches, ContentType, embeddedPlayerParameters, EnhanceConfiguration, EnhanceContext, EnhancePlayerCommand, ENHANCE_BRIDGE_EVENTS, ENHANCE_PLAYER_EVENTS, frameStepSeconds, highestQualityAtOrBelow, isContentType, isEditableShortcutTarget, MAX_COMMAND_DETAIL_LENGTH, MAX_CONTEXT_DETAIL_LENGTH, parseBridgeDetail, playerPresentationState, validateEnhanceContext, validatePlayerCommand } from "./contract";
 import { EMBEDDED_CONFIGURATION_ID, PAIRED_INSTANCES_KEY, parseEmbeddedConfigurationText } from "./instances";
 import { t } from "./i18n";
@@ -417,6 +417,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   let requestedPlayerMode: EmbeddedPlayerMode = "standard";
   let contentTypeAuthoritative = false;
   let playerMode: EmbeddedPlayerMode = "standard";
+  const previewEmbed = isPreviewEmbedUrl(location.href);
   let observedLivePlayableEnd = 0;
   const lifecycle = new AbortController();
   const signal = lifecycle.signal;
@@ -472,12 +473,15 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     video.playbackRate = desiredRate;
     if (!captionLanguageUserSelected) selectedCaptionLanguage = context.playback.captions.language || selectedCaptionLanguage;
     subtitleSize = context.playback.captions.style.fontSizePx;
-    applyCaptionPreferences(context.playback.captions);
-    scheduleCaptionDefaults(300);
-    renderMarkers(context);
+    if (!previewEmbed) {
+      applyCaptionPreferences(context.playback.captions);
+      scheduleCaptionDefaults(300);
+      renderMarkers(context);
+    }
   };
 
   const say = (message: string) => {
+    if (playerMode === "preview") return;
     toast.textContent = message;
     toast.classList.add("show");
     clearTimeout(toastTimer);
@@ -535,7 +539,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     return pending;
   };
   const scheduleCaptionDefaults = (delay: number) => {
-    if (captionDefaultsApplied || captionUserOverride) return;
+    if (previewEmbed || captionDefaultsApplied || captionUserOverride) return;
     clearTimeout(captionDefaultTimer);
     captionDefaultTimer = window.setTimeout(() => {
       captionDefaultTimer = 0;
@@ -600,8 +604,16 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     playerMode = mode;
     host.classList.toggle("mode-live", mode === "live");
     host.classList.toggle("mode-shorts", mode === "shorts");
+    host.classList.toggle("mode-preview", mode === "preview");
     liveEdgeElement.hidden = mode !== "live";
-    if (mode === "live") {
+    if (mode === "preview") {
+      video.autoplay = true;
+      video.loop = true;
+      video.muted = true;
+      video.defaultMuted = true;
+      setCaptionMenuOpen(false);
+      void video.play().catch(() => {});
+    } else if (mode === "live") {
       desiredRate = 1;
       video.playbackRate = 1;
       setCaptionMenuOpen(false);
@@ -620,7 +632,17 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
       hideControls();
     }
   };
-  const refreshPlayerMode = () => applyPlayerMode(resolveEmbeddedPlayerMode(requestedPlayerMode, contentTypeAuthoritative, nativeLivePlayback()));
+  const refreshPlayerMode = () => {
+    applyPlayerMode(
+      previewEmbed
+        ? "preview"
+        : resolveEmbeddedPlayerMode(
+            requestedPlayerMode,
+            contentTypeAuthoritative,
+            nativeLivePlayback(),
+          ),
+    );
+  };
   const goLive = () => {
     const range = liveSeekRange();
     if (range) video.currentTime = Math.max(range.start, range.end - .1);
@@ -676,6 +698,9 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   };
   const executeCommand = async (command: EnhancePlayerCommand) => {
     const payload = command.payload as Record<string, any>;
+    if (playerMode === "preview" && !["seek-by", "seek-to", "set-muted", "toggle-muted", "capture-frame"].includes(command.command)) {
+      return { ok: false, error: `${command.command} is unavailable for previews`, state: playerState() };
+    }
     if (playerMode === "live" && command.command === "set-playback-rate") {
       return { ok: false, error: "set-playback-rate is unavailable for livestreams", state: playerState() };
     }
@@ -741,7 +766,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     syncCaptionControls();
     setPlayerIcon(fullscreen, document.fullscreenElement ? PLAYER_ICONS.minimize : PLAYER_ICONS.fullscreen);
     const playback = playbackSettings();
-    if (remoteConfig?.sponsorBlock.enabled) {
+    if (playerMode !== "preview" && remoteConfig?.sponsorBlock.enabled) {
       const segment = playback.sponsorBlockSegments.find((item) => item.actionType === "skip" && video.currentTime >= item.segment[0] && video.currentTime < item.segment[1] - .25);
       if (segment && segment.UUID !== lastSkippedSegment) {
         lastSkippedSegment = segment.UUID;
@@ -769,6 +794,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     knob.style.left = `${fraction * 100}%`;
   };
   const showProgressTooltip = (clientX: number) => {
+    if (playerMode === "preview") return;
     const range = playerMode === "live" ? liveSeekRange() : null;
     const duration = range ? range.end - range.start : video.duration;
     if (!Number.isFinite(duration) || duration <= 0) return;
@@ -798,6 +824,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     frameCallback = video.requestVideoFrameCallback(sampleFrames);
   };
   const onKey = (event: KeyboardEvent) => {
+    if (playerMode === "preview") return;
     if (event.key === "Escape" && captionMenuOpen) {
       event.preventDefault(); event.stopImmediatePropagation(); setCaptionMenuOpen(false); return;
     }
@@ -862,6 +889,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     update();
   };
   const onKeyUp = (event: KeyboardEvent) => {
+    if (playerMode === "preview") return;
     if (event.code !== "Space" || isEditableShortcutTarget(event.target)) return;
     event.preventDefault();
     event.stopImmediatePropagation();
@@ -876,11 +904,13 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     }
   };
   const onSurfaceClick = (event: MouseEvent) => {
+    if (playerMode === "preview") return;
     const target = event.target as Element | null;
     if (!target || target.closest("#ytze-player-controls") || !target.closest(".html5-video-player")) return;
     event.preventDefault(); event.stopImmediatePropagation(); togglePlay(); showControls();
   };
   const onSurfaceDoubleClick = (event: MouseEvent) => {
+    if (playerMode === "preview") return;
     const target = event.target as Element | null;
     if (!target || target.closest("#ytze-player-controls")) return;
     event.preventDefault(); event.stopImmediatePropagation(); toggleFullscreen();
@@ -889,11 +919,38 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   play.addEventListener("click", togglePlay, { signal });
   bigPlay.addEventListener("click", togglePlay, { signal });
   liveEdgeElement.addEventListener("click", goLive, { signal });
-  progress.addEventListener("pointerdown", (event) => { scrubbing = true; progress.setPointerCapture(event.pointerId); scrubTo(event.clientX); showProgressTooltip(event.clientX); }, { signal });
-  progress.addEventListener("pointermove", (event) => { showProgressTooltip(event.clientX); if (scrubbing) scrubTo(event.clientX); }, { signal });
+  progress.addEventListener("pointerdown", (event) => { scrubbing = true; progress.setPointerCapture(event.pointerId); scrubTo(event.clientX); if (playerMode !== "preview") showProgressTooltip(event.clientX); }, { signal });
+  progress.addEventListener("pointermove", (event) => { if (playerMode !== "preview") showProgressTooltip(event.clientX); if (scrubbing) scrubTo(event.clientX); }, { signal });
   progress.addEventListener("pointerup", (event) => { scrubbing = false; progress.releasePointerCapture(event.pointerId); }, { signal });
   progress.addEventListener("pointerleave", () => { if (!scrubbing) tooltip.classList.remove("show"); }, { signal });
-  mute.addEventListener("click", () => { video.muted = !video.muted; update(); }, { signal });
+  const togglePreviewMuted = () => {
+    if (video.muted) {
+      if (video.volume === 0) video.volume = 1;
+      video.muted = false;
+      void video.play().catch(() => {});
+    } else {
+      video.muted = true;
+    }
+
+    update();
+  };
+  mute.addEventListener("pointerdown", (event) => {
+    if (playerMode !== "preview") return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    togglePreviewMuted();
+  }, { signal });
+  mute.addEventListener("click", (event) => {
+    if (playerMode === "preview") {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
+    video.muted = !video.muted;
+    update();
+  }, { signal });
   volume.addEventListener("input", () => { video.volume = Number(volume.value); video.muted = false; update(); }, { signal });
   captions.addEventListener("click", () => setCaptionMenuOpen(!captionMenuOpen), { signal });
   captionSwitch.addEventListener("click", () => void setYouTubeCaptions(!captionsAreEnabled()), { signal });
@@ -912,8 +969,12 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     if (captionMenuOpen && !event.composedPath().includes(captionMenuWrap)) setCaptionMenuOpen(false);
   }, { capture: true, signal });
   document.addEventListener("mousemove", showControls, { passive: true, signal });
-  video.addEventListener("play", () => { if (playerMode !== "shorts") showControls(); applyPreferredQuality(); emitState("play", true); }, { signal });
-  video.addEventListener("pause", () => { if (playerMode !== "shorts") showControls(); emitState("pause", true); }, { signal });
+  video.addEventListener("play", () => { if (playerMode !== "shorts" && playerMode !== "preview") showControls(); applyPreferredQuality(); emitState("play", true); }, { signal });
+  video.addEventListener("pause", () => {
+    if (playerMode === "preview") void video.play().catch(() => {});
+    else if (playerMode !== "shorts") showControls();
+    emitState("pause", true);
+  }, { signal });
   video.addEventListener("volumechange", () => emitState("volumechange", true), { signal });
   video.addEventListener("loadedmetadata", () => {
     refreshPlayerMode();
@@ -936,10 +997,12 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   refreshPlayerMode();
   desiredRate = nativeLivePlayback() ? 1 : playbackSettings().rate;
   video.playbackRate = desiredRate;
-  applyCaptionPreferences(playbackSettings().captions);
-  renderCaptionLanguageMenu();
-  scheduleCaptionDefaults(800);
-  const removeLandscapeFullscreen = installLandscapeFullscreen(video);
+  if (!previewEmbed) {
+    applyCaptionPreferences(playbackSettings().captions);
+    renderCaptionLanguageMenu();
+    scheduleCaptionDefaults(800);
+  }
+  const removeLandscapeFullscreen = previewEmbed ? () => {} : installLandscapeFullscreen(video);
   applyPreferredQuality();
   update();
   emitPlayerEvent("ready", { state: playerState() });
@@ -1211,4 +1274,127 @@ const CONTROL_STYLES = `
   :host(.mode-shorts):not(.visible) .big-play { display: none; }
   @media (max-width: 480px) { .time, .pip { display: none; } .buttons { gap: 1px; } button { width: 34px; } .controls { padding-inline: 8px; } }
   @media (prefers-reduced-motion: reduce) { .controls, .toast, .knob, .progress-track { transition: none; } .live-edge.active .live-dot { animation: none; } }
+  :host(.mode-preview) .controls {
+    align-items: center;
+    background:
+      linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.85),
+        rgba(0, 0, 0, 0.4) 60%,
+        transparent
+      );
+    bottom: 0;
+    display: flex;
+    gap: 8px;
+    left: 0;
+    opacity: 1;
+    padding: 18px 8px 7px;
+    pointer-events: auto;
+    right: 0;
+  }
+
+  :host(.mode-preview) .progress {
+    flex: 1;
+    height: 16px;
+    min-width: 0;
+  }
+
+  :host(.mode-preview) .progress-track {
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    height: 3px;
+    overflow: hidden;
+    transition: height 0.12s ease;
+  }
+
+  :host(.mode-preview) .progress:hover .progress-track,
+  :host(.mode-preview) .progress:focus-visible .progress-track {
+    height: 5px;
+  }
+
+  :host(.mode-preview) .played {
+    background: #f2293a;
+    border-radius: 999px;
+  }
+
+  :host(.mode-preview) .knob {
+    background: #f2293a;
+    border-radius: 50%;
+    height: 12px;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.12s ease;
+    width: 12px;
+  }
+
+  :host(.mode-preview) .progress:hover .knob,
+  :host(.mode-preview) .progress:focus-visible .knob {
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  :host(.mode-preview) .buttons {
+    align-items: center;
+    display: flex;
+    flex: 0 0 auto;
+    gap: 0;
+    margin: 0;
+  }
+
+  :host(.mode-preview) .buttons > :not(.volume-wrap) {
+    display: none;
+  }
+
+  :host(.mode-preview) .volume-wrap {
+    align-items: center;
+    display: flex;
+  }
+
+  :host(.mode-preview) .volume {
+    display: none;
+  }
+
+  :host(.mode-preview) .mute {
+    background: transparent;
+    border-radius: 6px;
+    color: #fff;
+    height: 34px;
+    min-height: 34px;
+    min-width: 38px;
+    opacity: 0.92;
+    padding: 0;
+    width: 38px;
+  }
+
+  :host(.mode-preview) .mute:hover,
+  :host(.mode-preview) .mute:focus-visible {
+    background: rgba(255, 255, 255, 0.14);
+    opacity: 1;
+  }
+
+  :host(.mode-preview) .mute svg {
+    height: 20px;
+    width: 20px;
+  }
+
+  :host(.mode-preview) .big-play,
+  :host(.mode-preview) .play,
+  :host(.mode-preview) .time,
+  :host(.mode-preview) .live-edge,
+  :host(.mode-preview) .spacer,
+  :host(.mode-preview) .caption-menu-wrap,
+  :host(.mode-preview) .pip,
+  :host(.mode-preview) .fullscreen,
+  :host(.mode-preview) .volume,
+  :host(.mode-preview) .buffered,
+  :host(.mode-preview) .markers,
+  :host(.mode-preview) .progress-tooltip,
+  :host(.mode-preview) .toast {
+    display: none !important;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :host(.mode-preview) .progress-track,
+    :host(.mode-preview) .knob {
+      transition: none;
+    }
+  }
 `;

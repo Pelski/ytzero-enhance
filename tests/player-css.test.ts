@@ -111,3 +111,29 @@ test("live and short-form players receive purpose-built controls", () => {
   expect(content).toContain('if (requestedPlayerMode === "shorts")');
   expect(content).toContain(":host(.mode-shorts):not(.visible) .big-play");
 });
+
+test("preview players expose only seeking and pointer-based mute controls", () => {
+  expect(content).toContain('classList.toggle("mode-preview", mode === "preview")');
+  expect(content).toContain('const previewEmbed = isPreviewEmbedUrl(location.href)');
+  expect(content).toContain('previewEmbed\n        ? "preview"');
+  expect(content).toContain('mute.addEventListener("pointerdown"');
+  expect(content).toContain('if (playerMode === "preview") {\n      event.preventDefault();');
+  expect(content).toContain('const onSurfaceClick = (event: MouseEvent) => {\n    if (playerMode === "preview") return;');
+  expect(content).toContain('const onSurfaceDoubleClick = (event: MouseEvent) => {\n    if (playerMode === "preview") return;');
+  expect(content).toContain('if (playerMode !== "preview") showProgressTooltip(event.clientX)');
+  expect(content).toContain('video.muted || video.volume === 0 ? PLAYER_ICONS.muted : PLAYER_ICONS.volume');
+});
+
+test("preview controls match the VideoCard hover layout", () => {
+  expect(content).toContain(":host(.mode-preview) .controls");
+  expect(content).toContain("padding: 18px 8px 7px");
+  expect(content).toContain("gap: 8px");
+  expect(content).toContain("border-radius: 999px");
+  expect(content).toContain("min-width: 38px");
+  expect(content).toContain("width: 38px");
+  expect(content).toContain("min-height: 34px");
+  expect(content).toContain("height: 34px");
+  for (const selector of [".play", ".caption-menu-wrap", ".pip", ".fullscreen"]) {
+    expect(content).toContain(`:host(.mode-preview) ${selector}`);
+  }
+});

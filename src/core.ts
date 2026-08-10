@@ -11,7 +11,7 @@ export const DEFAULT_SETTINGS = {
 };
 
 export type Settings = typeof DEFAULT_SETTINGS;
-export type EmbeddedPlayerMode = "standard" | "shorts" | "live";
+export type EmbeddedPlayerMode = "standard" | "shorts" | "live" | "preview";
 
 const VIDEO_ID = /^[A-Za-z0-9_-]{11}$/;
 const CHANNEL_ID = /^UC[A-Za-z0-9_-]{22}$/;
@@ -49,14 +49,30 @@ export function hasNoRedirectMarker(input: string): boolean {
   return Boolean(url?.hash.slice(1).split("&").includes(YT_NO_REDIRECT_MARKER));
 }
 
-export function embeddedPlayerModeForPage(input: string): Exclude<EmbeddedPlayerMode, "live"> {
+export function embeddedPlayerModeForPage(input: string): Exclude<EmbeddedPlayerMode, "live" | "preview"> {
   try {
     return /\/shorts(?:\/|$)/.test(new URL(input).pathname) ? "shorts" : "standard";
   } catch { return "standard"; }
 }
 
 export function resolveEmbeddedPlayerMode(requested: EmbeddedPlayerMode, authoritative: boolean, nativeLive: boolean): EmbeddedPlayerMode {
+  if (requested === "preview") return "preview";
   return requested === "live" || (!authoritative && nativeLive) ? "live" : requested;
+}
+
+export function isPreviewEmbedUrl(input: string): boolean {
+  try {
+    const url = new URL(input);
+    const host = url.hostname.replace(/^www\./, "").toLowerCase();
+
+    return (
+      ["youtube.com", "youtube-nocookie.com"].includes(host) &&
+      /^\/embed\/[A-Za-z0-9_-]{11}$/.test(url.pathname) &&
+      url.searchParams.get("ytzero_preview") === "1"
+    );
+  } catch {
+    return false;
+  }
 }
 
 export function playerTimeline(currentTime: number, duration: number, liveRange?: { start: number; end: number } | null) {
