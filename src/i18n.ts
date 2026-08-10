@@ -75,6 +75,7 @@ const EN: Record<string, string> = {
   playerControls: "YT Zero player",
   captionsShortcut: "Captions (C)",
   saveFrameShortcut: "Save frame (S)",
+  firefoxCaptureShortcut: "In Firefox, use Alt+Shift+S (physical Control+Shift+S on macOS) to save a frame.",
   cinemaMode: "Cinema mode",
   cinemaModeShortcut: "Cinema mode (T)",
   pictureInPicture: "Picture in picture",

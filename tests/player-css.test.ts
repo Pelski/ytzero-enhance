@@ -39,6 +39,12 @@ test("the custom control bar omits cinema and capture buttons without removing t
   expect(content).toContain("ENHANCE_PLAYER_EVENTS.captionsToggleRequest");
 });
 
+test("Firefox directs the in-player S key to the registered capture command", () => {
+  expect(content).toContain('if (isFirefox) say(t("firefoxCaptureShortcut"), 4000)');
+  expect(content).toContain("else void requestCapture()");
+  expect(content).toContain('import { addApiListener, callApi, ext, extensionContextAvailable, isFirefox, onExtensionContextInvalidated } from "./webext"');
+});
+
 test("double-click toggles fullscreen across the iframe surface", () => {
   const handler = content.slice(content.indexOf("const onSurfaceDoubleClick"), content.indexOf("play.addEventListener"));
   expect(handler).toContain('target.closest("#ytze-player-controls")');

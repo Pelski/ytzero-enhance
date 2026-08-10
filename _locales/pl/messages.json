@@ -79,6 +79,7 @@
   "playerControls": { "message": "Odtwarzacz YT Zero" },
   "captionsShortcut": { "message": "Napisy (C)" },
   "saveFrameShortcut": { "message": "Zapisz klatkę (S)" },
+  "firefoxCaptureShortcut": { "message": "W Firefoxie użyj Alt+Shift+S (fizyczne Control+Shift+S na macOS), aby zapisać klatkę." },
   "cinemaMode": { "message": "Tryb kinowy" },
   "cinemaModeShortcut": { "message": "Tryb kinowy (T)" },
   "pictureInPicture": { "message": "Obraz w obrazie" },

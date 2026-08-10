@@ -34,6 +34,8 @@ When control replacement is active, `controls=0` and `disablekb=1` are only addi
 
 The player stylesheet is not a static manifest injection. Before inserting it or creating custom controls, the background validates the exact embedded frame and confirms that its parent tab matches an enabled paired instance. Ordinary embeds on unrelated sites remain untouched.
 
+Firefox grants the temporary `activeTab` capability required by `captureVisibleTab` only to browser-recognized extension actions. Therefore the in-player `S` key shows a localized hint in Firefox instead of attempting a capture that the browser will reject. Frame capture uses the registered extension command: `Alt+Shift+S` on Windows/Linux and physical `Control+Shift+S` on macOS. Other browsers retain the direct `S` shortcut.
+
 ### Content-specific control modes
 
 YT Zero supplies the semantic presentation through validated `context.video.contentType`. The extension applies `default`, `short`, and `livestream` changes in place. Older application builds fall back to the `/shorts` route and native active-broadcast detection; aspect ratio is never used to classify content.

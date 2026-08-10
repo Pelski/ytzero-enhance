@@ -79,6 +79,7 @@
   "playerControls": { "message": "YT-Zero-Player" },
   "captionsShortcut": { "message": "Untertitel (C)" },
   "saveFrameShortcut": { "message": "Bild speichern (S)" },
+  "firefoxCaptureShortcut": { "message": "Verwende in Firefox Alt+Umschalt+S (unter macOS die physische Tastenkombination Control+Umschalt+S), um ein Bild zu speichern." },
   "cinemaMode": { "message": "Kinomodus" },
   "cinemaModeShortcut": { "message": "Kinomodus (T)" },
   "pictureInPicture": { "message": "Bild-in-Bild" },

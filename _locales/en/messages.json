@@ -79,6 +79,7 @@
   "playerControls": { "message": "YT Zero player" },
   "captionsShortcut": { "message": "Captions (C)" },
   "saveFrameShortcut": { "message": "Save frame (S)" },
+  "firefoxCaptureShortcut": { "message": "In Firefox, use Alt+Shift+S (physical Control+Shift+S on macOS) to save a frame." },
   "cinemaMode": { "message": "Cinema mode" },
   "cinemaModeShortcut": { "message": "Cinema mode (T)" },
   "pictureInPicture": { "message": "Picture in picture" },

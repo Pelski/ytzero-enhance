@@ -1,5 +1,5 @@
 export const ext: any = (globalThis as any).browser ?? (globalThis as any).chrome;
-const firefox = typeof (globalThis as any).browser !== "undefined";
+export const isFirefox = typeof (globalThis as any).browser !== "undefined";
 const INVALIDATED_MESSAGE = "Extension context invalidated";
 const invalidationListeners = new Set<() => void>();
 let contextInvalidated = false;
@@ -40,7 +40,7 @@ export function callApi<T>(owner: any, method: string, ...args: any[]): Promise<
         reject(new Error(INVALIDATED_MESSAGE));
         return;
       }
-      if (firefox) {
+      if (isFirefox) {
         Promise.resolve(owner[method](...args)).then(resolve, (error) => { if (isInvalidation(error)) markContextInvalidated(); reject(error); });
         return;
       }

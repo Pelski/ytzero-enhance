@@ -2,7 +2,7 @@ import { containedMediaRect, DEFAULT_SETTINGS, embeddedPlayerModeForPage, Embedd
 import { BridgeScreenshotRequest, claimScreenshotRequest, configuredPageMatches, ContentType, embeddedPlayerParameters, EnhanceConfiguration, EnhanceContext, EnhancePlayerCommand, ENHANCE_BRIDGE_EVENTS, ENHANCE_PLAYER_EVENTS, frameStepSeconds, highestQualityAtOrBelow, isContentType, isEditableShortcutTarget, MAX_COMMAND_DETAIL_LENGTH, MAX_CONTEXT_DETAIL_LENGTH, parseBridgeDetail, playerPresentationState, validateEnhanceContext, validatePlayerCommand } from "./contract";
 import { EMBEDDED_CONFIGURATION_ID, PAIRED_INSTANCES_KEY, parseEmbeddedConfigurationText } from "./instances";
 import { t } from "./i18n";
-import { addApiListener, callApi, ext, extensionContextAvailable, onExtensionContextInvalidated } from "./webext";
+import { addApiListener, callApi, ext, extensionContextAvailable, isFirefox, onExtensionContextInvalidated } from "./webext";
 
 let config = normalizeSettings(DEFAULT_SETTINGS);
 let remoteConfig: EnhanceConfiguration | null = null;
@@ -480,12 +480,12 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     }
   };
 
-  const say = (message: string) => {
+  const say = (message: string, duration = 1500) => {
     if (playerMode === "preview") return;
     toast.textContent = message;
     toast.classList.add("show");
     clearTimeout(toastTimer);
-    toastTimer = window.setTimeout(() => toast.classList.remove("show"), 1500);
+    toastTimer = window.setTimeout(() => toast.classList.remove("show"), duration);
   };
   const captionLanguages = () => remoteConfig?.player.captions.availableLanguages ?? [];
   const captionsAreEnabled = () => captionsEnabled;
@@ -880,7 +880,10 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     else if (key === "c") toggleCaptions();
     else if (key === "+" || key === "=") { subtitleSize = Math.min(48, subtitleSize + 2); document.documentElement.style.setProperty("--ytze-caption-size", `${subtitleSize}px`); say(`${subtitleSize}px`); }
     else if (key === "-" || key === "_") { subtitleSize = Math.max(12, subtitleSize - 2); document.documentElement.style.setProperty("--ytze-caption-size", `${subtitleSize}px`); say(`${subtitleSize}px`); }
-    else if (key === "s" && !event.repeat) void requestCapture();
+    else if (key === "s" && !event.repeat) {
+      if (isFirefox) say(t("firefoxCaptureShortcut"), 4000);
+      else void requestCapture();
+    }
     else if (key === "t") void callApi(ext.runtime, "sendMessage", { type: "ytze-player-page-shortcut", key: "t" }).catch(() => {});
     else if (key === "f") toggleFullscreen();
     else if (key === ",") { video.pause(); seekBy(-frameDuration()); say(t("oneFrameBack")); }
