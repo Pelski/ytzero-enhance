@@ -1,7 +1,8 @@
 import { containedMediaRect, DEFAULT_SETTINGS, embeddedPlayerModeForPage, EmbeddedPlayerMode, formatClock, isPreviewEmbedUrl, normalizeSettings, playableLiveRange, playerTimeline, resolveEmbeddedPlayerMode, youtubeVideoId } from "./core";
-import { BridgeScreenshotRequest, claimScreenshotRequest, configuredPageMatches, ContentType, embeddedPlayerParameters, EnhanceConfiguration, EnhanceContext, EnhancePlayerCommand, ENHANCE_BRIDGE_EVENTS, ENHANCE_PLAYER_EVENTS, frameStepSeconds, highestQualityAtOrBelow, isContentType, isEditableShortcutTarget, MAX_COMMAND_DETAIL_LENGTH, MAX_CONTEXT_DETAIL_LENGTH, parseBridgeDetail, playerPresentationState, validateEnhanceContext, validatePlayerCommand } from "./contract";
+import { BridgeScreenshotRequest, claimScreenshotRequest, configuredPageMatches, ContentType, embeddedPlayerParameters, EnhanceConfiguration, EnhanceContext, EnhancePlayerCommand, ENHANCE_BRIDGE_EVENTS, ENHANCE_PLAYER_EVENTS, frameStepSeconds, highestQualityAtOrBelow, isContentType, MAX_COMMAND_DETAIL_LENGTH, MAX_CONTEXT_DETAIL_LENGTH, parseBridgeDetail, playerPresentationState, validateEnhanceContext, validatePlayerCommand } from "./contract";
 import { EMBEDDED_CONFIGURATION_ID, PAIRED_INSTANCES_KEY, parseEmbeddedConfigurationText } from "./instances";
 import { t } from "./i18n";
+import { advanceOwnedPlaybackRate, chapterShortcutTarget, DEFAULT_SHORTCUT_BINDINGS, isEditableShortcutEvent, matchingShortcutAction, OwnedPlaybackRate, PARENT_OWNED_SHORTCUT_ACTIONS, shortcutAllowsRepeat, shortcutChordFromEvent, shortcutEventPayload, shortcutOperationBlocked, TemporaryBoostController, type ShortcutAction, type ShortcutBindings } from "./shortcuts";
 import { addApiListener, callApi, ext, extensionContextAvailable, isFirefox, onExtensionContextInvalidated } from "./webext";
 
 let config = normalizeSettings(DEFAULT_SETTINGS);
@@ -391,15 +392,12 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   const toast = q<HTMLElement>(".toast");
   let toastTimer = 0;
   let idleTimer = 0;
-  let frameCallback = 0;
   let qualityInterval = 0;
   let scrubbing = false;
-  let spaceHoldTimer = 0;
-  let spaceHoldActive = false;
-  let lastMediaTime: number | null = null;
-  const frameSamples: number[] = [];
+  let temporaryBoostController: TemporaryBoostController | null = null;
+  let shortcutBindings: ShortcutBindings = { ...DEFAULT_SHORTCUT_BINDINGS };
   let lastSkippedSegment = "";
-  let desiredRate = remoteConfig?.player.defaultPlaybackRate ?? 1;
+  const ownedRate = new OwnedPlaybackRate(remoteConfig?.player.defaultPlaybackRate ?? 1);
   let subtitleSize = remoteConfig?.player.captions.style.fontSizePx ?? 19;
   let selectedCaptionLanguage = new URL(location.href).searchParams.get("cc_lang_pref") || remoteConfig?.player.captions.language || "en";
   let captionLanguageUserSelected = false;
@@ -461,6 +459,8 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     rate: remoteConfig?.player.defaultPlaybackRate ?? 1,
     keyboardSeekSeconds: remoteConfig?.player.keyboardSeekSeconds ?? config.seekSeconds,
     frameStepFps: remoteConfig?.player.frameStepFps ?? config.frameRate,
+    keyboardShortcuts: shortcutBindings,
+    transportLocked: false,
     captions: remoteConfig?.player.captions ?? { enabledByDefault: false, language: "en", availableLanguages: [], style: { fontSizePx: 19, color: "#ffffff", backgroundOpacityPercent: 75 } },
     chapters: [], sponsorBlockSegments: [],
   };
@@ -468,9 +468,14 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   const applyContext = (context: EnhanceContext, authoritative = true) => {
     if (context.video.id !== youtubeVideoId(location.href)) return;
     bridgeContext = context;
+    shortcutBindings = context.playback.keyboardShortcuts;
     setContentType(context.video.contentType, authoritative);
-    desiredRate = playerMode === "live" ? 1 : context.playback.rate;
-    video.playbackRate = desiredRate;
+    ownedRate.reset(context.playback.rate, playerMode === "live");
+    if (!temporaryBoostController?.active) video.playbackRate = ownedRate.value;
+    if (context.playback.transportLocked || context.video.contentType === "livestream"
+      || (temporaryBoostController?.chord != null && context.playback.keyboardShortcuts.temporaryBoost !== temporaryBoostController.chord)) {
+      temporaryBoostController?.reset();
+    }
     if (!captionLanguageUserSelected) selectedCaptionLanguage = context.playback.captions.language || selectedCaptionLanguage;
     subtitleSize = context.playback.captions.style.fontSizePx;
     if (!previewEmbed) {
@@ -614,12 +619,13 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
       setCaptionMenuOpen(false);
       void video.play().catch(() => {});
     } else if (mode === "live") {
-      desiredRate = 1;
+      ownedRate.reset(1, true);
+      temporaryBoostController?.reset();
       video.playbackRate = 1;
       setCaptionMenuOpen(false);
     } else {
-      desiredRate = playbackSettings().rate;
-      video.playbackRate = desiredRate;
+      ownedRate.reset(playbackSettings().rate);
+      video.playbackRate = ownedRate.value;
     }
   };
   const setContentType = (type: ContentType, authoritative = true) => {
@@ -660,6 +666,16 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     else if (safariVideo.webkitDisplayingFullscreen) safariVideo.webkitExitFullscreen?.();
     else if (document.documentElement.requestFullscreen) void document.documentElement.requestFullscreen();
     else safariVideo.webkitEnterFullscreen?.();
+  };
+  const togglePictureInPicture = async () => {
+    if (document.pictureInPictureElement) {
+      if (!document.exitPictureInPicture) return false;
+      await document.exitPictureInPicture();
+      return true;
+    }
+    if (!video.requestPictureInPicture) return false;
+    await video.requestPictureInPicture();
+    return true;
   };
   const toggleCaptions = () => {
     const currentEnabled = captionsAreEnabled();
@@ -718,7 +734,10 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     else if (command.command === "set-volume") { video.volume = Number(payload.volume); video.muted = false; }
     else if (command.command === "set-muted") video.muted = Boolean(payload.enabled);
     else if (command.command === "toggle-muted") video.muted = !video.muted;
-    else if (command.command === "set-playback-rate") { desiredRate = Number(payload.rate); video.playbackRate = desiredRate; }
+    else if (command.command === "set-playback-rate") {
+      ownedRate.reset(Number(payload.rate));
+      if (!temporaryBoostController?.active) video.playbackRate = ownedRate.value;
+    }
     else if (command.command === "set-captions") await setYouTubeCaptions(Boolean(payload.enabled));
     else if (command.command === "toggle-captions") await setYouTubeCaptions(!captionsAreEnabled());
     else if (command.command === "set-caption-size") { subtitleSize = Number(payload.pixels); document.documentElement.style.setProperty("--ytze-caption-size", `${subtitleSize}px`); }
@@ -726,6 +745,9 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     else if (command.command === "toggle-fullscreen") toggleFullscreen();
     else if (command.command === "enter-fullscreen" && !document.fullscreenElement) toggleFullscreen();
     else if (command.command === "exit-fullscreen" && document.fullscreenElement) await document.exitFullscreen();
+    else if (command.command === "toggle-picture-in-picture" && !(await togglePictureInPicture())) {
+      return { ok: false, error: "Picture-in-picture is unavailable", state: playerState() };
+    }
     update();
     emitState("command", true);
     return { ok: true, state: playerState() };
@@ -809,102 +831,120 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     chapter.hidden = !activeChapter;
     tooltip.classList.add("show");
   };
-  const frameDuration = () => frameSamples.length
-    ? [...frameSamples].sort((a, b) => a - b)[Math.floor(frameSamples.length / 2)]
-    : frameStepSeconds(playbackSettings().frameStepFps);
-  const sampleFrames = (_now: number, metadata: VideoFrameCallbackMetadata) => {
-    if (lastMediaTime != null) {
-      const delta = metadata.mediaTime - lastMediaTime;
-      if (delta > 1 / 240 && delta < .25) {
-        frameSamples.push(delta);
-        if (frameSamples.length > 60) frameSamples.shift();
-      }
-    }
-    lastMediaTime = metadata.mediaTime;
-    frameCallback = video.requestVideoFrameCallback(sampleFrames);
+  const emitShortcut = (action: ShortcutAction, event: Parameters<typeof shortcutEventPayload>[1], value?: number) => {
+    emitPlayerEvent("shortcut", shortcutEventPayload(action, event, value));
   };
-  const onKey = (event: KeyboardEvent) => {
-    if (playerMode === "preview") return;
-    if (event.key === "Escape" && captionMenuOpen) {
-      event.preventDefault(); event.stopImmediatePropagation(); setCaptionMenuOpen(false); return;
-    }
-    if (event.altKey || event.ctrlKey || event.metaKey || isEditableShortcutTarget(event.target)) return;
-    const key = event.key.toLowerCase();
-    if (playerMode === "live" && (key === "," || key === ".")) return;
-    const handled = [" ", "k", "j", "l", "arrowleft", "arrowright", "arrowup", "arrowdown", "m", "s", "f", "c", "+", "=", "-", "_", ",", "."].includes(key) || (key === "t" && Boolean(bridgeContext)) || /^\d$/.test(key);
-    if (!handled) return;
+  const consumeShortcut = (event: KeyboardEvent) => {
     event.preventDefault();
-    event.stopImmediatePropagation();
-    const actions: Record<string, string> = {
-      " ": "play-or-hold-speed", k: "toggle-play", j: "seek-back-10", l: "seek-forward-10",
-      arrowleft: "seek-back", arrowright: "seek-forward", arrowup: "volume-up", arrowdown: "volume-down",
-      m: "toggle-muted", c: "toggle-captions", s: "capture-frame", t: "cinema-mode", f: "toggle-fullscreen",
-      "+": "captions-larger", "=": "captions-larger", "-": "captions-smaller", _: "captions-smaller",
-      ",": "previous-frame", ".": "next-frame",
-    };
-    const shortcutAction = playerMode === "shorts" && key === "arrowup"
-      ? "previous-short"
-      : playerMode === "shorts" && key === "arrowdown"
-        ? "next-short"
-        : key === " " && playerMode === "live"
-          ? "toggle-play"
-          : actions[key] ?? (/^\d$/.test(key) ? "seek-percent" : "unknown");
-    emitPlayerEvent("shortcut", {
-      key: event.key, code: event.code, action: shortcutAction,
-      repeat: event.repeat, modifiers: { alt: event.altKey, ctrl: event.ctrlKey, meta: event.metaKey, shift: event.shiftKey },
-    });
-    if (key === " ") {
-      if (playerMode === "live") {
-        if (!event.repeat) togglePlay();
-        update();
+    event.stopPropagation();
+  };
+  temporaryBoostController = new TemporaryBoostController({
+    schedule: (callback, delay) => window.setTimeout(callback, delay),
+    cancel: (timer) => window.clearTimeout(timer),
+    isBlocked: () => shortcutOperationBlocked("temporaryBoost", playerMode === "live", playbackSettings().transportLocked),
+    togglePlay,
+    setRate: (rate) => {
+      video.playbackRate = rate;
+      if (rate === 2) say("2×");
+    },
+    effectiveRate: () => ownedRate.value,
+    applied: (event) => emitShortcut("temporaryBoost", event),
+  });
+  const onKey = (event: KeyboardEvent) => {
+    if (playerMode === "preview" || isEditableShortcutEvent(event)) return;
+    const action = matchingShortcutAction(event, shortcutBindings);
+    if (!action) {
+      const chord = shortcutChordFromEvent(event);
+      if (playerMode !== "shorts" || (chord !== "ArrowUp" && chord !== "ArrowDown")) return;
+      consumeShortcut(event);
+      if (!event.repeat && !playbackSettings().transportLocked) {
+        void callApi(ext.runtime, "sendMessage", {
+          type: "ytze-player-page-shortcut",
+          key: chord === "ArrowUp" ? "shorts-prev" : "shorts-next",
+        }).catch(() => {});
+      }
+      return;
+    }
+
+    consumeShortcut(event);
+    if (event.repeat && !shortcutAllowsRepeat(action)) return;
+    if (shortcutOperationBlocked(action, playerMode === "live", playbackSettings().transportLocked)) return;
+    if (PARENT_OWNED_SHORTCUT_ACTIONS.has(action)) {
+      emitShortcut(action, event);
+      return;
+    }
+
+    if (action === "temporaryBoost") {
+      temporaryBoostController?.keydown(event);
+      return;
+    }
+    if (action === "togglePlay") togglePlay();
+    else if (action === "seekBack10" || action === "seekForward10") {
+      seekBy(action === "seekBack10" ? -10 : 10);
+      say(`${action === "seekBack10" ? "−" : "+"}10 s`);
+    } else if (action === "seekBack" || action === "seekForward") {
+      const seconds = playbackSettings().keyboardSeekSeconds;
+      seekBy(action === "seekBack" ? -seconds : seconds);
+      say(`${action === "seekBack" ? "−" : "+"}${seconds} s`);
+    } else if (action === "previousFrame" || action === "nextFrame") {
+      if (!video.paused) return;
+      const seconds = frameStepSeconds(playbackSettings().frameStepFps);
+      seekBy(action === "previousFrame" ? -seconds : seconds);
+      say(t(action === "previousFrame" ? "oneFrameBack" : "oneFrameForward"));
+    } else if (action === "speedDown" || action === "speedUp") {
+      const nextRate = advanceOwnedPlaybackRate(ownedRate, action === "speedDown" ? -1 : 1, (rate) => {
+        video.playbackRate = rate;
+      });
+      say(`${nextRate}×`);
+      emitShortcut(action, event, nextRate);
+      update();
+      return;
+    } else if (action === "seekPercent") {
+      if (!/^Digit[0-9]$/.test(event.code) || !Number.isFinite(video.duration) || video.duration <= 0) return;
+      video.currentTime = Number(event.code.slice(-1)) / 10 * video.duration;
+    } else if (action === "previousChapter" || action === "nextChapter") {
+      const target = chapterShortcutTarget(action, video.currentTime, playbackSettings().chapters);
+      if (target == null) return;
+      video.currentTime = target;
+    } else if (action === "volumeUp" || action === "volumeDown") {
+      video.volume = Math.min(1, Math.max(0, video.volume + (action === "volumeUp" ? .05 : -.05)));
+      if (action === "volumeUp" && video.volume > 0) video.muted = false;
+      say(`${Math.round(video.volume * 100)}%`);
+    } else if (action === "toggleCaptions") {
+      void setYouTubeCaptions(!captionsAreEnabled()).then((applied) => {
+        if (applied) emitShortcut(action, event);
+      });
+      return;
+    } else if (action === "subtitleLarger" || action === "subtitleSmaller") {
+      subtitleSize = Math.min(48, Math.max(12, subtitleSize + (action === "subtitleLarger" ? 1 : -1)));
+      document.documentElement.style.setProperty("--ytze-caption-size", `${subtitleSize}px`);
+      say(`${subtitleSize}px`);
+    } else if (action === "toggleFullscreen") toggleFullscreen();
+    else if (action === "togglePictureInPicture") {
+      void togglePictureInPicture().then((applied) => {
+        if (applied) emitShortcut(action, event);
+      }).catch(() => {});
+      return;
+    }
+    else if (action === "toggleMute") video.muted = !video.muted;
+    else if (action === "screenshot") {
+      if (isFirefox) {
+        say(t("firefoxCaptureShortcut"), 4000);
         return;
       }
-      if (event.repeat || spaceHoldTimer || spaceHoldActive) return;
-      spaceHoldTimer = window.setTimeout(() => {
-        spaceHoldTimer = 0;
-        spaceHoldActive = true;
-        video.playbackRate = 2;
-        say("2×");
-      }, 220);
+      void requestCapture().then((response) => {
+        if (response?.ok) emitShortcut(action, event);
+      });
+      return;
     }
-    else if (key === "k") togglePlay();
-    else if (key === "j") seekBy(-10);
-    else if (key === "l") seekBy(10);
-    else if (key === "arrowleft") { seekBy(-playbackSettings().keyboardSeekSeconds); say(`−${playbackSettings().keyboardSeekSeconds} s`); }
-    else if (key === "arrowright") { seekBy(playbackSettings().keyboardSeekSeconds); say(`+${playbackSettings().keyboardSeekSeconds} s`); }
-    else if (key === "arrowup" && playerMode === "shorts") void callApi(ext.runtime, "sendMessage", { type: "ytze-player-page-shortcut", key: "shorts-prev" }).catch(() => {});
-    else if (key === "arrowdown" && playerMode === "shorts") void callApi(ext.runtime, "sendMessage", { type: "ytze-player-page-shortcut", key: "shorts-next" }).catch(() => {});
-    else if (key === "arrowup") { video.volume = Math.min(1, video.volume + 0.05); video.muted = false; say(`${Math.round(video.volume * 100)}%`); }
-    else if (key === "arrowdown") { video.volume = Math.max(0, video.volume - 0.05); say(`${Math.round(video.volume * 100)}%`); }
-    else if (key === "m") video.muted = !video.muted;
-    else if (key === "c") toggleCaptions();
-    else if (key === "+" || key === "=") { subtitleSize = Math.min(48, subtitleSize + 2); document.documentElement.style.setProperty("--ytze-caption-size", `${subtitleSize}px`); say(`${subtitleSize}px`); }
-    else if (key === "-" || key === "_") { subtitleSize = Math.max(12, subtitleSize - 2); document.documentElement.style.setProperty("--ytze-caption-size", `${subtitleSize}px`); say(`${subtitleSize}px`); }
-    else if (key === "s" && !event.repeat) {
-      if (isFirefox) say(t("firefoxCaptureShortcut"), 4000);
-      else void requestCapture();
-    }
-    else if (key === "t") void callApi(ext.runtime, "sendMessage", { type: "ytze-player-page-shortcut", key: "t" }).catch(() => {});
-    else if (key === "f") toggleFullscreen();
-    else if (key === ",") { video.pause(); seekBy(-frameDuration()); say(t("oneFrameBack")); }
-    else if (key === ".") { video.pause(); seekBy(frameDuration()); say(t("oneFrameForward")); }
-    else if (/^\d$/.test(key) && playerMode !== "live" && video.duration) video.currentTime = Number(key) / 10 * video.duration;
+
+    emitShortcut(action, event);
     update();
   };
   const onKeyUp = (event: KeyboardEvent) => {
-    if (playerMode === "preview") return;
-    if (event.code !== "Space" || isEditableShortcutTarget(event.target)) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    if (playerMode === "live") return;
-    if (spaceHoldTimer) {
-      clearTimeout(spaceHoldTimer);
-      spaceHoldTimer = 0;
-      togglePlay();
-    } else if (spaceHoldActive) {
-      spaceHoldActive = false;
-      video.playbackRate = desiredRate;
-    }
+    if (playerMode === "preview" || !temporaryBoostController?.keyup(event)) return;
+    consumeShortcut(event);
+    update();
   };
   const onSurfaceClick = (event: MouseEvent) => {
     if (playerMode === "preview") return;
@@ -957,12 +997,9 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   volume.addEventListener("input", () => { video.volume = Number(volume.value); video.muted = false; update(); }, { signal });
   captions.addEventListener("click", () => setCaptionMenuOpen(!captionMenuOpen), { signal });
   captionSwitch.addEventListener("click", () => void setYouTubeCaptions(!captionsAreEnabled()), { signal });
-  q(".pip").addEventListener("click", () => {
-    const safariVideo = video as HTMLVideoElement & { webkitSupportsPresentationMode?: (mode: string) => boolean; webkitSetPresentationMode?: (mode: string) => void };
-    if (video.requestPictureInPicture) video.requestPictureInPicture().catch(() => say(t("pipUnavailable")));
-    else if (safariVideo.webkitSupportsPresentationMode?.("picture-in-picture")) safariVideo.webkitSetPresentationMode?.("picture-in-picture");
-    else say(t("pipUnavailable"));
-  }, { signal });
+  q(".pip").addEventListener("click", () => void togglePictureInPicture().then((applied) => {
+    if (!applied) say(t("pipUnavailable"));
+  }).catch(() => say(t("pipUnavailable"))), { signal });
   fullscreen.addEventListener("click", toggleFullscreen, { signal });
   document.addEventListener("keydown", onKey, { capture: true, signal });
   document.addEventListener("keyup", onKeyUp, { capture: true, signal });
@@ -981,10 +1018,12 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   video.addEventListener("volumechange", () => emitState("volumechange", true), { signal });
   video.addEventListener("loadedmetadata", () => {
     refreshPlayerMode();
-    if (Math.abs(video.playbackRate - desiredRate) > .001) video.playbackRate = desiredRate;
+    if (!temporaryBoostController?.active && Math.abs(video.playbackRate - ownedRate.value) > .001) video.playbackRate = ownedRate.value;
   }, { signal });
   video.addEventListener("ratechange", () => {
-    if (!spaceHoldActive && Math.abs(video.playbackRate - desiredRate) > .001) queueMicrotask(() => { if (!spaceHoldActive) video.playbackRate = desiredRate; });
+    if (!temporaryBoostController?.active && Math.abs(video.playbackRate - ownedRate.value) > .001) queueMicrotask(() => {
+      if (!temporaryBoostController?.active) video.playbackRate = ownedRate.value;
+    });
     emitState("ratechange", true);
   }, { signal });
   video.addEventListener("ended", () => {
@@ -996,10 +1035,9 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   document.addEventListener("fullscreenchange", () => { update(); emitState("fullscreenchange", true); }, { signal });
   const interval = window.setInterval(update, 250);
   qualityInterval = window.setInterval(applyPreferredQuality, 5_000);
-  if (video.requestVideoFrameCallback) frameCallback = video.requestVideoFrameCallback(sampleFrames);
   refreshPlayerMode();
-  desiredRate = nativeLivePlayback() ? 1 : playbackSettings().rate;
-  video.playbackRate = desiredRate;
+  ownedRate.reset(playbackSettings().rate, nativeLivePlayback());
+  video.playbackRate = ownedRate.value;
   if (!previewEmbed) {
     applyCaptionPreferences(playbackSettings().captions);
     renderCaptionLanguageMenu();
@@ -1031,9 +1069,9 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
       clearInterval(qualityInterval);
       clearTimeout(toastTimer);
       clearTimeout(idleTimer);
-      clearTimeout(spaceHoldTimer);
+      temporaryBoostController?.reset();
+      temporaryBoostController = null;
       clearTimeout(captionDefaultTimer);
-      if (frameCallback && video.cancelVideoFrameCallback) video.cancelVideoFrameCallback(frameCallback);
       document.removeEventListener("keydown", onKey, true);
       document.removeEventListener("mousemove", showControls);
       removeLandscapeFullscreen();
@@ -1148,9 +1186,9 @@ addApiListener(ext?.runtime?.onMessage, (message: any, _sender: any, sendRespons
     if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
     respond({ ok: true });
   }
-  if (message?.type === "ytze-dispatch-page-shortcut" && window.top === window && ["t", "shorts-prev", "shorts-next"].includes(message.key)) {
-    const key = message.key === "shorts-prev" ? "ArrowUp" : message.key === "shorts-next" ? "ArrowDown" : "t";
-    const code = key === "ArrowUp" ? "ArrowUp" : key === "ArrowDown" ? "ArrowDown" : "KeyT";
+  if (message?.type === "ytze-dispatch-page-shortcut" && window.top === window && ["shorts-prev", "shorts-next"].includes(message.key)) {
+    const key = message.key === "shorts-prev" ? "ArrowUp" : "ArrowDown";
+    const code = key;
     document.dispatchEvent(new KeyboardEvent("keydown", { key, code, bubbles: true }));
     respond({ ok: true });
   }

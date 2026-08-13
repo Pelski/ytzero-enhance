@@ -1,3 +1,5 @@
+import { resolveShortcutBindings, type ShortcutBindings } from "./shortcuts";
+
 export const ENHANCE_CONFIGURATION_FORMAT = "ytzero.enhance-configuration";
 export const ENHANCE_CONFIGURATION_VERSION = 1;
 export const ENHANCE_BRIDGE_VERSION = 1;
@@ -23,7 +25,7 @@ export const ENHANCE_PLAYER_EVENTS = {
 export const ENHANCE_PLAYER_COMMANDS = [
   "play", "pause", "toggle-play", "seek-by", "seek-to", "set-volume", "set-muted", "toggle-muted",
   "set-playback-rate", "set-captions", "toggle-captions", "set-caption-size", "capture-frame",
-  "toggle-fullscreen", "enter-fullscreen", "exit-fullscreen", "request-state",
+  "toggle-fullscreen", "enter-fullscreen", "exit-fullscreen", "toggle-picture-in-picture", "request-state",
 ] as const;
 
 export type EnhancePlayerCommandName = typeof ENHANCE_PLAYER_COMMANDS[number];
@@ -86,6 +88,8 @@ export interface EnhanceContext {
     rate: number;
     keyboardSeekSeconds: number;
     frameStepFps: number;
+    keyboardShortcuts: ShortcutBindings;
+    transportLocked: boolean;
     captions: { enabledByDefault: boolean; language: string; style: CaptionStyle };
     chapters: Array<{ title: string; start: number }>;
     sponsorBlockSegments: Array<{ category: string; actionType: string; segment: [number, number]; UUID: string }>;
@@ -306,6 +310,8 @@ export function validateEnhanceContext(value: unknown, legacyFallback: ContentTy
     playback: {
       rate: finite(playback.rate, 1, .25, 4), keyboardSeekSeconds: finite(playback.keyboardSeekSeconds, 5, 1, 120),
       frameStepFps: finite(playback.frameStepFps, 30, 1, 240),
+      keyboardShortcuts: resolveShortcutBindings(playback.keyboardShortcuts),
+      transportLocked: playback.transportLocked === true,
       captions: { enabledByDefault: captions.enabledByDefault === true, language: text(captions.language, "en", 16), style: style(captions.style) },
       chapters, sponsorBlockSegments,
     },

@@ -43,7 +43,7 @@ https://tools.applemediaservices.com/app-store/
 
 - Redirects supported watch, Shorts, live, short-link, and public-playlist URLs to your default YT Zero instance, preserving video timestamps and playlist context. Both `/playlist?list=…` and legacy `/show/VL…` playlist addresses are supported. The popup also offers an explicit redirect for supported video, public-playlist, and channel pages.
 - Pairs securely from any signed-in YT Zero page; supports multiple local, LAN, HTTPS and reverse-proxy-path instances.
-- Reads the active YT Zero profile's playback speed, seek interval, FPS, quality ceiling, captions, chapters, SponsorBlock and screenshot naming settings.
+- Reads the active YT Zero profile's playback speed, seek interval, FPS, keyboard shortcuts, quality ceiling, captions, chapters, SponsorBlock and screenshot naming settings.
 - Replaces the embedded player's native controls with a YT Zero-style control bar, buffering/progress display, chapters, SponsorBlock segments, volume, captions, PiP, fullscreen and theatre mode.
 - Adapts that control bar to the content: live broadcasts get DVR-aware progress and a live-edge action, while short-form playback gets compact controls designed for a vertical viewport.
 - Makes shortcuts work without first focusing the iframe, including approximate frame stepping with `,` / `.`.
@@ -75,18 +75,24 @@ Pair other instances in the same way. Each paired page uses its own active profi
 
 ## Keyboard shortcuts
 
+The bindings below are defaults. Change or disable them per profile in YT Zero; an open embedded player applies the complete new map immediately.
+
 | Key | Action |
 |---|---|
-| `Space` / `K` | Play or pause |
-| Hold `Space` | Temporarily play at 2× speed |
+| `K` | Play or pause |
+| Press / hold `Space` | Play or pause / temporarily play at 2× speed |
 | `J` / `L` | Seek −10 s / +10 s |
 | `←` / `→` | Seek by the profile interval |
 | `↑` / `↓` / `M` | Volume up, down or mute |
 | `C`, `+`, `-` | Captions and caption size |
 | `0`–`9` | Jump to 0–90% |
-| `,` / `.` | Previous / next approximate frame |
+| `,` / `.` | Previous / next configured frame while paused |
+| `Shift+,` / `Shift+.` | Decrease / increase speed by 0.25× |
+| `Alt+←` / `Alt+→` | Previous / next chapter |
+| `Shift+P` / `Shift+N` | Previous / next video |
 | `S` | Save the current frame |
-| `F` / `T` | Fullscreen / YT Zero theatre mode |
+| `F` / `T` / `I` | Fullscreen / YT Zero theatre / native picture-in-picture |
+| `Escape` | Close the active YT Zero player presentation |
 | `Alt+Shift+S` (`Control+Shift+S` on macOS) | Capture the active embedded player |
 | `Alt+Shift+Y` | Toggle redirects globally |
 

@@ -151,6 +151,7 @@ test("validates bidirectional player commands and events", () => {
     version: 1, requestId: "req-1", videoId: "dQw4w9WgXcQ", command: "seek-by", payload: { seconds: 15 },
   });
   expect(validatePlayerCommand({ version: 1, requestId: "req-2", videoId: "dQw4w9WgXcQ", command: "set-volume", payload: { volume: 8 } })?.payload.volume).toBe(1);
+  expect(validatePlayerCommand({ version: 1, requestId: "req-pip", videoId: "dQw4w9WgXcQ", command: "toggle-picture-in-picture" })?.command).toBe("toggle-picture-in-picture");
   expect(validatePlayerCommand({ version: 1, requestId: "", videoId: "dQw4w9WgXcQ", command: "play" })).toBeNull();
   expect(validatePlayerEvent({ version: 1, videoId: "dQw4w9WgXcQ", type: "shortcut", timestamp: 1, payload: { key: "k" } })?.type).toBe("shortcut");
   expect(validatePlayerEvent({ version: 1, videoId: "bad", type: "state", payload: {} })).toBeNull();

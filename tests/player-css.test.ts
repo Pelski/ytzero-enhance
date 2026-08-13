@@ -3,6 +3,7 @@ import { expect, test } from "bun:test";
 const css = await Bun.file(new URL("../src/player.css", import.meta.url)).text();
 const content = await Bun.file(new URL("../src/content.ts", import.meta.url)).text();
 const background = await Bun.file(new URL("../src/background.ts", import.meta.url)).text();
+const shortcuts = await Bun.file(new URL("../src/shortcuts.ts", import.meta.url)).text();
 
 test("replacement CSS structurally removes native player layers", () => {
   expect(css).toContain("html.ytze-replace-controls .html5-video-player >");
@@ -32,17 +33,53 @@ test("replacement CSS covers both classic and experimental embedded controls", (
 test("the custom control bar omits cinema and capture buttons without removing their commands", () => {
   expect(content).not.toContain('class="cinema"');
   expect(content).not.toContain('class="capture"');
-  expect(content).toContain('key === "s"');
+  expect(content).toContain('action === "screenshot"');
   expect(content).toContain('command.command === "capture-frame"');
   expect(content).toContain('type: "ytze-player-event"');
   expect(content).toContain('emitPlayerEvent("captions-toggle-request"');
   expect(content).toContain("ENHANCE_PLAYER_EVENTS.captionsToggleRequest");
 });
 
-test("Firefox directs the in-player S key to the registered capture command", () => {
-  expect(content).toContain('if (isFirefox) say(t("firefoxCaptureShortcut"), 4000)');
-  expect(content).toContain("else void requestCapture()");
-  expect(content).toContain('import { addApiListener, callApi, ext, extensionContextAvailable, isFirefox, onExtensionContextInvalidated } from "./webext"');
+test("configured screenshot shortcuts retain the privileged flow and Firefox command fallback", () => {
+  expect(content).toContain('action === "screenshot"');
+  expect(content).toContain("void requestCapture().then");
+  expect(content).toContain('if (isFirefox)');
+  expect(content).toContain('type: "ytze-capture-frame"');
+});
+
+test("the iframe has one configurable shortcut listener without the legacy fixed lookup", () => {
+  const handler = content.slice(content.indexOf("const onKey ="), content.indexOf("const onSurfaceClick"));
+  expect(handler).toContain("matchingShortcutAction(event, shortcutBindings)");
+  expect(handler).toContain("PARENT_OWNED_SHORTCUT_ACTIONS.has(action)");
+  expect(handler).toContain("shortcutOperationBlocked(action");
+  expect(handler).not.toContain("event.key.toLowerCase()");
+  expect(handler).not.toContain("const actions: Record<string, string>");
+  expect(handler).not.toContain('"cinema-mode"');
+  expect(handler).not.toContain('"seek-back"');
+  expect(handler).not.toContain('"toggle-muted"');
+  expect(handler).not.toContain("toggleMiniplayer");
+  expect(shortcuts).not.toContain("toggleMiniplayer");
+  expect(`${handler}\n${shortcuts}`).not.toMatch(/spherical|sphereVideo|video360/i);
+});
+
+test("rapid speed steps use owned state and emit the computed value without rereading the player", () => {
+  const handler = content.slice(content.indexOf("const onKey ="), content.indexOf("const onKeyUp ="));
+  expect(handler).toContain("advanceOwnedPlaybackRate(ownedRate");
+  expect(handler).toContain("emitShortcut(action, event, nextRate)");
+  expect(handler).not.toContain("stepShortcutPlaybackRate(video.playbackRate");
+  expect(handler).not.toContain("emitShortcut(action, event, video.playbackRate)");
+  expect(content).toContain("ownedRate.reset(Number(payload.rate))");
+  expect(content).toContain("effectiveRate: () => ownedRate.value");
+});
+
+test("KeyI and the command toggle only native picture-in-picture", () => {
+  expect(shortcuts).toContain('"togglePictureInPicture"');
+  expect(content).toContain('action === "togglePictureInPicture"');
+  expect(content).toContain("video.requestPictureInPicture()");
+  expect(content).toContain("document.exitPictureInPicture()");
+  expect(content).toContain('command.command === "toggle-picture-in-picture"');
+  expect(content).not.toContain("webkitSetPresentationMode");
+  expect(content).not.toContain("webkitSupportsPresentationMode");
 });
 
 test("double-click toggles fullscreen across the iframe surface", () => {
@@ -97,17 +134,16 @@ test("live and short-form players receive purpose-built controls", () => {
   expect(content).toContain('classList.toggle("mode-shorts"');
   expect(content).toContain('create("button", "live-edge")');
   expect(content).toContain("liveSeekRange()");
-  expect(content).toContain('playerMode === "live" && (key === "," || key === ".")');
+  expect(content).toContain('shortcutOperationBlocked(action, playerMode === "live"');
   expect(content).toContain(":host(.mode-shorts) .controls");
   expect(content).toContain(":host(.mode-shorts) .volume");
   expect(content).toContain(":host(.mode-live) .time");
   expect(background).toContain('"ytze-authorize-player-frame"');
   expect(background).toContain("embeddedPlayerModeForPage");
   expect(background).toContain("getVideoData?.()?.isLive");
-  expect(content).toContain('"previous-short"');
-  expect(content).toContain('"next-short"');
-  expect(content).toContain('key: "shorts-prev"');
-  expect(content).toContain('key: "shorts-next"');
+  expect(content).toContain('"shorts-prev"');
+  expect(content).toContain('"shorts-next"');
+  expect(content).toContain('chord === "ArrowUp" ? "shorts-prev" : "shorts-next"');
   expect(content).toContain("setContentType(context.video.contentType");
   expect(content).toContain("contentTypeAuthoritative");
   expect(content).toContain("set-playback-rate is unavailable for livestreams");

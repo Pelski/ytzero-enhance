@@ -4,7 +4,7 @@ Issue tracker status reviewed on July 25, 2026. All public issues in the YT Zero
 
 | Issue | Iframe limitation compared with the local player | Handling in YT Zero Enhance |
 |---|---|---|
-| [#68](https://github.com/Pelski/ytzero/issues/68) | No `,` / `.` frame stepping | Added; intervals are measured with `requestVideoFrameCallback`, with the configured FPS as a fallback. VFR remains an approximation. |
+| [#68](https://github.com/Pelski/ytzero/issues/68) | No `,` / `.` frame stepping | Added; paused stepping uses exactly `1 / playback.frameStepFps` from the active profile context. |
 | [#67](https://github.com/Pelski/ytzero/issues/67) | No raw iframe frame capture | Added rendered-frame capture using `captureVisibleTab` and cropping. Raw source resolution remains available only from the local `<video>`. |
 | [#52](https://github.com/Pelski/ytzero/issues/52) | Cursor remains visible in iframe fullscreen | The extension hides its control bar and cursor after 2.6 seconds without movement during playback. |
 | [#51](https://github.com/Pelski/ytzero/issues/51) | Keyboard input leaves native controls visible | Custom controls use an independent timer; the native control bar can remain hidden. |
@@ -44,7 +44,7 @@ The replacement UI has three presentations:
 
 - **standard** keeps the complete timeline, volume slider, elapsed/duration label, captions, PiP and fullscreen;
 - **live** uses the current seekable DVR window instead of the non-finite media duration, clamps its end to buffered or already observed playable media so the timeline cannot seek into a manifest's unavailable future edge, shows a live-edge action with the current delay, keeps playback at 1× and disables frame stepping and hold-for-2×;
-- **shorts** uses compact circular controls and a thinner timeline for a vertical viewport, while hiding the expanded volume slider, time label and PiP button. Controls start hidden and are revealed only by pointer movement or a click/tap, never by autoplay, pause, initialization, or a context change while scrolling. When the iframe has focus, Up/Down is forwarded to YT Zero's previous/next short-form navigation instead of changing volume.
+- **shorts** uses compact circular controls and a thinner timeline for a vertical viewport, while hiding the expanded volume slider, time label and PiP button. Controls start hidden and are revealed only by pointer movement or a click/tap, never by autoplay, pause, initialization, or a context change while scrolling. Configured bindings win; an otherwise unassigned physical Up/Down chord is forwarded to YT Zero's previous/next short-form navigation.
 
 Shorts mode is derived from the authenticated paired page's `/shorts` route. Live mode is verified inside the exact embedded frame through a narrow `MAIN`-world player-state probe, with media duration and the native live class retained as fallbacks. No additional permission is required.
 
@@ -71,8 +71,8 @@ Supported event types:
 
 - `ready` — the player is ready; `payload.state` contains the initial snapshot;
 - `state` — a snapshot after play/pause, volume, speed, fullscreen/PiP, or a command, and at most once per second during playback;
-- `shortcut` — a handled shortcut with its `key`, `code`, logical `action`, `repeat` state, and modifiers;
-- `captions-toggle-request` — a quick caption toggle requested by `C`; the caption button opens its own language menu and controls the embedded player directly;
+- `shortcut` — a handled shortcut with its `key`, physical `code`, camelCase logical `action`, `repeat` state, and exact modifiers; speed-step actions also include the applied numeric `value`;
+- `captions-toggle-request` — retained for compatibility with older extension builds;
 - `ended` — playback ended;
 - `command-result` — a command result correlated by `payload.requestId`.
 
@@ -103,9 +103,10 @@ Supported commands:
 | `set-caption-size` | `{ "pixels": 12..48 }` |
 | `capture-frame` | `{}` |
 | `toggle-fullscreen`, `enter-fullscreen`, `exit-fullscreen` | `{}` |
+| `toggle-picture-in-picture` | `{}` |
 | `request-state` | `{}` |
 
-The `C` shortcut retains the compatible `ytzero:enhance:captions-toggle-request` event. It includes `currentEnabled` and `requestedEnabled`. The CC button opens a local-player-style menu: its switch enables or disables captions, and the language list comes from `player.captions.availableLanguages`. At runtime, the extension waits for the player's caption module, selects an exact native track when available, or intersects the requested language with `translationLanguages` and translates a translatable base track. Known player aliases such as `he`/`iw` are normalized. Caption operations are serialized, the profile default is applied once, and later context refreshes do not overwrite a user choice in the current player.
+The configured `toggleCaptions` action and the CC menu operate the embedded player directly, then publish current state. The menu's switch enables or disables captions, and the language list comes from `player.captions.availableLanguages`. At runtime, the extension waits for the player's caption module, selects an exact native track when available, or intersects the requested language with `translationLanguages` and translates a translatable base track. Known player aliases such as `he`/`iw` are normalized. Caption operations are serialized, the profile default is applied once, and later context refreshes do not overwrite a user choice in the current player.
 
 ## Regression scenarios
 

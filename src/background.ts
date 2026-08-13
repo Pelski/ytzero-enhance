@@ -158,7 +158,7 @@ ext.runtime.onMessage.addListener((message: any, sender: any, sendResponse: (val
     message?.type === "ytze-player-page-shortcut"
     && sender.tab?.id != null
     && youtubeFrameMatches(sender.url, youtubeVideoIdFromFrame(sender.url))
-    && ["t", "shorts-prev", "shorts-next"].includes(message.key)
+    && ["shorts-prev", "shorts-next"].includes(message.key)
   ) {
     void callApi(ext.tabs, "sendMessage", sender.tab.id, { type: "ytze-dispatch-page-shortcut", key: message.key }, { frameId: 0 }).catch(() => {});
     sendResponse({ ok: true });
