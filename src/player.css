@@ -51,17 +51,18 @@ html.ytze-replace-controls .videowall-endscreen {
  * remove every other direct player layer. The selector list above only covers
  * portals which YouTube may mount outside the regular player layer tree.
  */
-html.ytze-replace-controls .html5-video-player >
-  :not(video)
-  :not(.html5-video-container)
-  :not(.ytp-caption-window-container)
-  :not(#ytp-caption-window-container)
-  :not(.ytp-spinner)
-  :not(.ytp-ad-module)
-  :not(.ytp-ad-player-overlay)
-  :not(.ytp-paid-content-overlay)
-  :not([class*="ytp-ad-"])
-  :not([id*="ytp-ad-"]) {
+html.ytze-replace-controls .html5-video-player > :not(
+  video,
+  .html5-video-container,
+  .ytp-caption-window-container,
+  #ytp-caption-window-container,
+  .ytp-spinner,
+  .ytp-ad-module,
+  .ytp-ad-player-overlay,
+  .ytp-paid-content-overlay,
+  [class*="ytp-ad-"],
+  [id*="ytp-ad-"]
+) {
   display: none !important;
   visibility: hidden !important;
   pointer-events: none !important;

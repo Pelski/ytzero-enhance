@@ -121,22 +121,32 @@ function boot() {
   if (!config.enhancePlayer || !remoteConfig?.enabled || !youtubeVideoId(location.href)) return;
   const videoId = youtubeVideoId(location.href)!;
   const token = ++playerBootToken;
-  void callApi<any>(ext.runtime, "sendMessage", { type: "ytze-authorize-player-frame", videoId }).then((authorization) => {
+  const authorize = async () => {
+    const retryDelays = [0, 100, 250, 500, 1_000, 2_000];
+    for (const delay of retryDelays) {
+      if (delay) await new Promise((resolve) => window.setTimeout(resolve, delay));
+      if (token !== playerBootToken || !config.enhancePlayer || !remoteConfig?.enabled) return null;
+      const authorization = await callApi<any>(ext.runtime, "sendMessage", { type: "ytze-authorize-player-frame", videoId }).catch(() => null);
+      if (authorization?.authorized) return authorization;
+    }
+    return null;
+  };
+  void authorize().then((authorization) => {
     if (token !== playerBootToken || !authorization?.authorized || !config.enhancePlayer || !remoteConfig?.enabled) {
       if (authorization?.authorized) void callApi(ext.runtime, "sendMessage", { type: "ytze-remove-player-styles", videoId }).catch(() => {});
       return;
     }
-  const start = () => {
-    const video = document.querySelector<HTMLVideoElement>("video.html5-main-video, video");
-    if (!video || playerController) return;
-    playerController = enhanceYouTubePlayer(video);
-    playerController.setMode(authorization.mode);
-    void callApi(ext.runtime, "sendMessage", { type: "ytze-player-initialized", videoId }).catch(() => {});
-  };
-  start();
-  playerObserver = new MutationObserver(start);
-  playerObserver.observe(document.documentElement, { childList: true, subtree: true });
-  }).catch(() => {});
+    const start = () => {
+      const video = document.querySelector<HTMLVideoElement>("video.html5-main-video, video");
+      if (!video || playerController) return;
+      playerController = enhanceYouTubePlayer(video);
+      playerController.setMode(authorization.mode);
+      void callApi(ext.runtime, "sendMessage", { type: "ytze-player-initialized", videoId }).catch(() => {});
+    };
+    start();
+    playerObserver = new MutationObserver(start);
+    playerObserver.observe(document.documentElement, { childList: true, subtree: true });
+  });
 }
 
 function markExtensionActiveWhenReady() {
@@ -331,7 +341,6 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   const liveEdgeElement = create("button", "live-edge") as HTMLButtonElement;
   liveEdgeElement.type = "button";
   liveEdgeElement.setAttribute("aria-label", t("goLive"));
-  liveEdgeElement.title = t("goLive");
   const liveDotElement = create("span", "live-dot");
   const liveLabelElement = create("span");
   liveLabelElement.textContent = t("live");
@@ -339,8 +348,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
   liveEdgeElement.hidden = true;
   const spacerElement = create("span", "spacer");
   const captionMenuWrapElement = create("div", "caption-menu-wrap");
-  const captionsElement = iconButton("captions", t("captions"), PLAYER_ICONS.captions);
-  captionsElement.title = t("captionsShortcut");
+  const captionsElement = iconButton("captions", t("captionsShortcut"), PLAYER_ICONS.captions);
   captionsElement.setAttribute("aria-haspopup", "dialog");
   captionsElement.setAttribute("aria-expanded", "false");
   const captionMenuElement = create("div", "caption-menu");
@@ -777,8 +785,7 @@ function enhanceYouTubePlayer(video: HTMLVideoElement) {
     const liveDelay = timeline.liveDelay;
     const atLiveEdge = liveDelay != null && liveDelay <= 2;
     liveEdgeElement.classList.toggle("active", atLiveEdge);
-    liveEdgeElement.setAttribute("aria-label", atLiveEdge ? t("live") : t("goLive"));
-    liveEdgeElement.title = atLiveEdge ? t("live") : liveDelay == null ? t("goLive") : `${t("goLive")} (−${formatClock(liveDelay).replace(/-/g, ":")})`;
+    liveEdgeElement.setAttribute("aria-label", atLiveEdge ? t("live") : liveDelay == null ? t("goLive") : `${t("goLive")} (−${formatClock(liveDelay).replace(/-/g, ":")})`);
     progress.classList.toggle("unavailable", playerMode === "live" && !liveRange);
     progress.setAttribute("aria-disabled", String(playerMode === "live" && !liveRange));
     setPlayerIcon(play, video.paused ? PLAYER_ICONS.play : PLAYER_ICONS.pause);
@@ -1099,7 +1106,6 @@ function renderMarkers(context: EnhanceContext) {
     const marker = document.createElement("i");
     marker.className = "chapter-marker";
     marker.style.left = `${chapter.start / context.video.duration * 100}%`;
-    marker.title = chapter.title;
     markers.append(marker);
   }
   if (remoteConfig?.sponsorBlock.enabled) for (const segment of context.playback.sponsorBlockSegments) {
@@ -1108,7 +1114,6 @@ function renderMarkers(context: EnhanceContext) {
     marker.style.left = `${segment.segment[0] / context.video.duration * 100}%`;
     marker.style.width = `${Math.max(.25, (segment.segment[1] - segment.segment[0]) / context.video.duration * 100)}%`;
     marker.style.background = SPONSOR_COLORS[segment.category] ?? "#888888";
-    marker.title = segment.category;
     markers.append(marker);
   }
 }

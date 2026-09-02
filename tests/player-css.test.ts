@@ -6,12 +6,16 @@ const background = await Bun.file(new URL("../src/background.ts", import.meta.ur
 const shortcuts = await Bun.file(new URL("../src/shortcuts.ts", import.meta.url)).text();
 
 test("replacement CSS structurally removes native player layers", () => {
-  expect(css).toContain("html.ytze-replace-controls .html5-video-player >");
-  expect(css).toContain(":not(video)");
-  expect(css).toContain(":not(.html5-video-container)");
-  expect(css).toContain(":not(#ytp-caption-window-container)");
-  expect(css).toContain(":not(.ytp-spinner)");
-  expect(css).toContain(":not([class*=\"ytp-ad-\"])");
+  const structuralRule = css.slice(
+    css.indexOf("html.ytze-replace-controls .html5-video-player > :not("),
+    css.indexOf(") {", css.indexOf("html.ytze-replace-controls .html5-video-player > :not(")),
+  );
+  expect(structuralRule).toContain("video,");
+  expect(structuralRule).toContain(".html5-video-container,");
+  expect(structuralRule).toContain("#ytp-caption-window-container,");
+  expect(structuralRule).toContain(".ytp-spinner,");
+  expect(structuralRule).toContain('[class*="ytp-ad-"],');
+  expect(structuralRule).not.toMatch(/\)\s+:not\(/);
 });
 
 test("player CSS is inserted only after the parent tab is authorized as paired", () => {
@@ -21,6 +25,12 @@ test("player CSS is inserted only after the parent tab is authorized as paired",
   expect(content.indexOf('type: "ytze-authorize-player-frame"')).toBeLessThan(content.indexOf("playerController = enhanceYouTubePlayer(video)"));
 });
 
+test("player startup retries transient frame authorization failures", () => {
+  expect(content).toContain("const retryDelays = [0, 100, 250, 500, 1_000, 2_000]");
+  expect(content).toContain("if (authorization?.authorized) return authorization");
+  expect(content).toContain("token !== playerBootToken");
+});
+
 test("replacement CSS covers both classic and experimental embedded controls", () => {
   expect(css).toContain(".ytp-chrome-bottom");
   expect(css).toContain(".ytwPlayerMiddleControlsHost");
@@ -28,6 +38,12 @@ test("replacement CSS covers both classic and experimental embedded controls", (
   expect(css).toContain(".player-controls-bottom");
   expect(css).toContain("player-fullscreen-action-menu");
   expect(css).toContain("yt-sheet-view-model");
+});
+
+test("custom player controls do not create native title tooltips", () => {
+  expect(content).not.toMatch(/\.title\s*=/);
+  expect(content).toContain('iconButton("captions", t("captionsShortcut")');
+  expect(content).toContain('liveEdgeElement.setAttribute("aria-label"');
 });
 
 test("the custom control bar omits cinema and capture buttons without removing their commands", () => {

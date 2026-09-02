@@ -56,6 +56,7 @@ The sibling `../ytzero` repository owns the application-side bridge. Its relevan
 - Frame capture functionality must remain available through the `S` shortcut, extension popup, background messages, and the `capture-frame` bridge command. Removing a controls button does not authorize removing capture logic.
 - The `T` shortcut may request YT Zero theatre/cinema behavior on the containing application page even though there is no cinema button in the embedded controls.
 - Keep keyboard shortcuts usable without focusing the embedded iframe first, subject to editable-target guards.
+- Do not add native `title` tooltips to the embedded player surface. Keep controls accessible with `aria-label` and use the player-owned progress tooltip or toast for visible feedback; browser tooltips cover the video and conflict with those surfaces.
 - Native upstream UI suppression must preserve video, captions, loading, and advertisement layers and tolerate both classic and experimental controls.
 - Do not declare `player.css` as a static manifest content-script stylesheet. The background must validate the exact embedded frame and paired parent tab before inserting it with `scripting.insertCSS`; unpaired embeds must receive neither the stylesheet nor custom control DOM.
 
